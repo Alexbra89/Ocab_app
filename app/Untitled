@@ -1,0 +1,65 @@
+"use client";
+import { useState } from "react";
+
+export default function Home() {
+  const [cv, setCv] = useState("");
+  const [job, setJob] = useState("");
+  const [result, setResult] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const generateSoknad = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        body: JSON.stringify({ cv, job }),
+      });
+      const data = await res.json();
+      setResult(data.text);
+    } catch (err) {
+      setResult("Noe gikk galt. Sjekk at du har laget API-ruten!");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <main className="min-h-screen p-8 bg-gray-50 text-gray-900">
+      <div className="max-w-2xl mx-auto space-y-6">
+        <h1 className="text-3xl font-bold text-blue-600">AI Søknads-generator</h1>
+        
+        <div>
+          <label className="block font-medium">Min CV</label>
+          <textarea 
+            className="w-full p-3 border rounded-lg h-40" 
+            placeholder="Lim inn din CV her..."
+            onChange={(e) => setCv(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block font-medium">Stillingsutlysning</label>
+          <textarea 
+            className="w-full p-3 border rounded-lg h-40" 
+            placeholder="Lim inn annonsen her..."
+            onChange={(e) => setJob(e.target.value)}
+          />
+        </div>
+
+        <button 
+          onClick={generateSoknad}
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-400"
+        >
+          {loading ? "Genererer..." : "Generer Søknad ✨"}
+        </button>
+
+        {result && (
+          <div className="p-6 bg-white border rounded-lg shadow-sm whitespace-pre-wrap">
+            <h2 className="text-xl font-bold mb-4">Din søknad:</h2>
+            {result}
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}
