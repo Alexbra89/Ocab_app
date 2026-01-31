@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const { cv, job } = await req.json();
-    const apiKey = "AIzaSyBkY90Mh9GBTuSmqjQY_BMQx8i9SGvmOhQ"; 
+    const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY; 
     
     // Vi bytter fra v1beta til v1
     const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
