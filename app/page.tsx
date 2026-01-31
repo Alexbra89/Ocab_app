@@ -967,5 +967,3 @@ const medarbeiderBoxStyle = {
   transition: 'all 0.2s',
   fontWeight: 'bold' as 'bold'
 };
-
-// oppdatering
