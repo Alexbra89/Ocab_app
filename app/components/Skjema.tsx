@@ -46,7 +46,7 @@ export function Modal({ tittel, undertittel, onLukk, children, bunn, bred = fals
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 backdrop-blur-sm sm:items-center sm:p-6"
       onMouseDown={e => e.target === e.currentTarget && onLukk()}>
-      <div className={`flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl bg-slate-50 shadow-2xl ring-1 ring-slate-200 sm:rounded-3xl ${bred ? 'sm:max-w-4xl' : 'sm:max-w-2xl'}`}>
+      <div className={`flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl bg-slate-50 shadow-2xl ring-1 ring-slate-200 sm:rounded-3xl ${bred ? 'sm:max-w-6xl' : 'sm:max-w-2xl'}`}>
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 bg-white px-6 py-4">
           <div className="min-w-0">
             <h2 className="truncate text-lg font-semibold tracking-tight text-slate-900">{tittel}</h2>

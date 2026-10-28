@@ -1,6 +1,6 @@
 // Eksport til Excel (CSV), sikkerhetskopi (JSON) og tilbudsdokument.
 
-import { beregnPris, dagerApen, kroner, KM_SATS, SATSER, STATUSER, type FirmaInfo, type Sak } from './saker';
+import { beregnPris, dagerApen, kroner, KM_SATS, OPPDRAG, ROLLER, STATUSER, type FirmaInfo, type Sak } from './saker';
 
 const lastNed = (innhold: BlobPart, filnavn: string, type: string) => {
   const url = URL.createObjectURL(new Blob([innhold], { type }));
@@ -31,6 +31,7 @@ export const eksporterExcel = (saker: Sak[]) => {
     ['Opprettet', s => dato(s.opprettet)],
     ['Avsluttet', s => dato(s.avsluttet)],
     ['Dager åpen', s => dagerApen(s, na)],
+    ['Oppdrag', s => s.pris.oppdrag.map(o => o.variant).join(', ')],
     ['Sum inkl. mva', s => Math.round(beregnPris(s.pris).totalInklMva)],
     ['Beskrivelse', s => s.beskrivelse],
     ['Notater', s => s.notater.map(n => `${dato(n.tidspunkt)}: ${n.tekst}`).join(' | ')],
@@ -72,7 +73,8 @@ th,td{padding:10px 8px;border-bottom:1px solid #e2e8f0;text-align:left}th{font-s
 <div class="boks"><div class="l">Kontakt</div><div class="v">${html(sak.telefon)}${sak.epost ? ` · ${html(sak.epost)}` : ''}</div></div>
 <div class="boks"><div class="l">Saksbehandler</div><div class="v">${html(sak.saksbehandler || '–')}</div></div></div>
 <table><thead><tr><th>Post</th><th>Detaljer</th><th class="h">Beløp</th></tr></thead><tbody>
-${rad('Arbeid', p.prisType === 'timespris' ? `${p.timer} t × ${SATSER[p.rolle]} kr (${p.rolle})` : 'Fastpris', b.grunnlag)}
+${b.grunnlag ? rad('Arbeid', p.prisType === 'timespris' ? `${ROLLER[p.rolle].navn}, ${p.timer} t × ${kroner(ROLLER[p.rolle].sats)}` : 'Fastpris', b.grunnlag) : ''}
+${p.oppdrag.map(o => rad(html(OPPDRAG[o.type].navn), `${html(o.variant)}, ${o.antall} × ${kroner(o.pris)}`, o.antall * o.pris)).join('')}
 ${p.utstyr ? rad('Utstyr og materiell', 'Eks. mva', p.utstyr) : ''}
 ${p.kjoreKm ? rad('Kjøring', `${p.kjoreKm} km × ${KM_SATS} kr`, b.kjoreTillegg) : ''}
 ${p.bompenger ? rad('Bompenger', '', p.bompenger) : ''}

@@ -5,7 +5,7 @@ import Ikon from './Ikon';
 import { Initialer } from './Skjema';
 import Velger from './Velger';
 import {
-  aktivtVarsel, beregnPris, dagerApen, erApen, kroner, SAKSBEHANDLERE, STATUS_REKKEFOLGE, STATUSER,
+  aktivtVarsel, beregnPris, dagerApen, erApen, kroner, OPPDRAG, SAKSBEHANDLERE, STATUS_REKKEFOLGE, STATUSER,
   type Sak, type Status,
 } from '@/lib/saker';
 
@@ -62,6 +62,11 @@ export default function SaksKort({ sak, na, onApne, onStatus, onSaksbehandler, o
               #{sak.saksnummer}
             </span>
             <h3 className="truncate text-base font-semibold tracking-tight text-slate-900 hover:text-ocab-700">{sak.navn || 'Uten navn'}</h3>
+            {sak.pris.oppdrag.map(o => (
+              <span key={o.id} className="hidden shrink-0 rounded-full bg-ocab-600/10 px-2 py-0.5 text-[11px] font-medium text-ocab-800 sm:inline">
+                {OPPDRAG[o.type].navn}
+              </span>
+            ))}
           </div>
           <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
             {(sak.adresse || sted) && (

@@ -14,11 +14,23 @@ export interface Aktivitet {
   tekst: string;
 }
 
+export type Rolle = 'skadedyrekspert' | 'tomrer' | 'prosjektleder';
+export type OppdragType = 'befaring' | 'sikring' | 'bekjempelse' | 'serviceavtale';
+
+export interface OppdragLinje {
+  id: string;
+  type: OppdragType;
+  variant: string; // f.eks. "Førstegangsbefaring"
+  antall: number;
+  pris: number; // eks. mva per stk
+}
+
 export interface Pris {
   prisType: 'timespris' | 'fastpris';
-  rolle: 'tømrer' | 'ekspert';
+  rolle: Rolle;
   timer: number;
   fastprisSum: number;
+  oppdrag: OppdragLinje[];
   utstyr: number;
   kjoreKm: number;
   bompenger: number;
@@ -139,14 +151,36 @@ export const aktivtVarsel = (sak: Sak, na: number): Varsel | null => {
 };
 
 // ===== PRIS =====
-export const SATSER = { tømrer: 750, ekspert: 900 };
+// Timepriser eks. mva fra prislisten (linje 1–2). Endre her når prisene endres.
+export const ROLLER: Record<Rolle, { navn: string; sats: number }> = {
+  skadedyrekspert: { navn: 'Skadedyrekspert', sats: 1150 }, // «Skadedyrekspert/bekjemper»
+  tomrer: { navn: 'Tømrer', sats: 900 }, // «Skadedyr håndverker»
+  prosjektleder: { navn: 'Prosjektleder', sats: 1150 }, // står ikke i prislisten – juster ved behov
+};
+export const ROLLE_REKKEFOLGE: Rolle[] = ['skadedyrekspert', 'tomrer', 'prosjektleder'];
+
+// Oppdragstyper med faste priser eks. mva fra prislisten (linje 3–6).
+// Sikring og bekjempelse har ingen fast pris – prisen fylles inn per sak.
+export const OPPDRAG: Record<OppdragType, { navn: string; varianter: { navn: string; pris: number }[] }> = {
+  befaring: { navn: 'Befaring', varianter: [{ navn: 'Førstegangsbefaring', pris: 4550 }, { navn: 'Rutinebefaring', pris: 2860 }] },
+  sikring: { navn: 'Sikring', varianter: [{ navn: 'Sikring', pris: 0 }] },
+  bekjempelse: { navn: 'Bekjempelse', varianter: [{ navn: 'Bekjempelse', pris: 0 }] },
+  serviceavtale: { navn: 'Serviceavtale', varianter: [{ navn: 'Service felle besøk', pris: 1218.75 }] },
+};
+export const OPPDRAG_REKKEFOLGE: OppdragType[] = ['befaring', 'sikring', 'bekjempelse', 'serviceavtale'];
+
+export const nyOppdragLinje = (type: OppdragType): OppdragLinje => ({
+  id: nyId(), type, variant: OPPDRAG[type].varianter[0].navn, antall: 1, pris: OPPDRAG[type].varianter[0].pris,
+});
+
 export const KM_SATS = 6.5;
 
 export const tomPris = (): Pris => ({
   prisType: 'timespris',
-  rolle: 'tømrer',
+  rolle: 'skadedyrekspert',
   timer: 0,
   fastprisSum: 0,
+  oppdrag: [],
   utstyr: 0,
   kjoreKm: 0,
   bompenger: 0,
@@ -154,17 +188,21 @@ export const tomPris = (): Pris => ({
 });
 
 export const beregnPris = (pris: Pris) => {
-  const grunnlag = pris.prisType === 'timespris' ? pris.timer * SATSER[pris.rolle] : pris.fastprisSum;
+  const grunnlag = pris.prisType === 'timespris' ? pris.timer * ROLLER[pris.rolle].sats : pris.fastprisSum;
+  const oppdragSum = pris.oppdrag.reduce((sum, o) => sum + o.antall * o.pris, 0);
   const kjoreTillegg = pris.kjoreKm * KM_SATS;
-  const sumForRabatt = grunnlag + pris.utstyr + kjoreTillegg + pris.bompenger;
+  const sumForRabatt = grunnlag + oppdragSum + pris.utstyr + kjoreTillegg + pris.bompenger;
   const rabattBelop = (sumForRabatt * pris.rabatt) / 100;
   const sumEksMva = sumForRabatt - rabattBelop;
   const mva = sumEksMva * 0.25;
-  return { grunnlag, kjoreTillegg, sumForRabatt, rabattBelop, sumEksMva, mva, totalInklMva: sumEksMva + mva };
+  return { grunnlag, oppdragSum, kjoreTillegg, sumForRabatt, rabattBelop, sumEksMva, mva, totalInklMva: sumEksMva + mva };
 };
 
-export const kroner = (belop: number) =>
-  new Intl.NumberFormat('nb-NO', { style: 'currency', currency: 'NOK', maximumFractionDigits: 0 }).format(belop);
+// Viser øre bare når beløpet har det (1 218,75 kr), ellers hele kroner (4 550 kr).
+export const kroner = (belop: number) => {
+  const ore = Math.abs(Math.round(belop * 100) % 100) !== 0 ? 2 : 0;
+  return new Intl.NumberFormat('nb-NO', { style: 'currency', currency: 'NOK', minimumFractionDigits: ore, maximumFractionDigits: ore }).format(belop);
+};
 
 // ===== OPPRETTING =====
 export const nyId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -254,11 +292,18 @@ export const fyllInnManglende = ({ prosjektleder, ...sak }: Partial<Sak> & { pro
   ...sak,
   saksbehandler: sak.saksbehandler ?? prosjektleder ?? '',
   saksnummer: sak.saksnummer || '',
-  pris: { ...tomPris(), ...(sak.pris || {}) },
+  pris: medGyldigRolle({ ...tomPris(), ...(sak.pris || {}) }),
   notater: sak.notater || [],
   aktiviteter: sak.aktiviteter || [],
   lukketVarsel: sak.lukketVarsel || 0,
 } as Sak);
+
+// Eldre saker brukte rollene «tømrer» og «ekspert».
+const medGyldigRolle = (pris: Pris): Pris => {
+  const gammel: Record<string, Rolle> = { 'tømrer': 'tomrer', ekspert: 'skadedyrekspert' };
+  const rolle = gammel[pris.rolle] || pris.rolle;
+  return { ...pris, rolle: rolle in ROLLER ? rolle : 'skadedyrekspert', oppdrag: pris.oppdrag || [] };
+};
 
 export const STANDARD_FIRMA: FirmaInfo = {
   navn: 'OCAB – Skadedyr & Forebyggende',
@@ -287,7 +332,7 @@ interface GammelProsjekt {
   ansvarlig?: string;
   notat?: string;
   timer?: number;
-  rolle?: 'tømrer' | 'ekspert';
+  rolle?: string;
   prisType?: 'timespris' | 'fastpris';
   fastprisSum?: number;
   utstyr?: number;
@@ -317,9 +362,10 @@ const fraGammelt = (p: GammelProsjekt): Sak => {
     aktiviteter: (p.aktiviteter || []).map(a => ({ id: String(a.id), tidspunkt: new Date(a.id).toISOString(), tekst: a.handling })),
     pris: {
       prisType: p.prisType || 'timespris',
-      rolle: p.rolle || 'tømrer',
+      rolle: (p.rolle || 'skadedyrekspert') as Rolle,
       timer: p.timer || 0,
       fastprisSum: p.fastprisSum || 0,
+      oppdrag: [],
       utstyr: p.utstyr || 0,
       kjoreKm: p.kjoreKm || 0,
       bompenger: p.bompenger || 0,
