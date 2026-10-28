@@ -27,6 +27,7 @@ export interface Pris {
 
 export interface Sak {
   id: string;
+  saksnummer: string; // f.eks. "2026-014" – løpenummer per år
   opprettet: string; // ISO-dato – løpetiden og varslene regnes fra denne
   avsluttet?: string; // ISO-dato – settes når saken blir Ferdig eller Ingen sak
   status: Status;
@@ -36,7 +37,7 @@ export interface Sak {
   poststed: string;
   telefon: string;
   epost: string;
-  prosjektleder: string;
+  saksbehandler: string;
   beskrivelse: string;
   notater: Notat[];
   aktiviteter: Aktivitet[];
@@ -54,13 +55,15 @@ export interface FirmaInfo {
 
 // ===== STATUS =====
 // `kort` = svak farge på hele saksboksen, `marg` = sterk farge i venstre marg.
-export const STATUSER: Record<Status, { navn: string; kort: string; marg: string; prikk: string; pille: string }> = {
+// `diagram` er fargen i grafene – kontrollert for fargeblindhet (rødt og grønt skilles på lyshet).
+export const STATUSER: Record<Status, { navn: string; kort: string; marg: string; prikk: string; pille: string; diagram: string }> = {
   ny: {
     navn: 'Ny',
     kort: 'bg-blue-50/80 ring-blue-200/70',
     marg: 'bg-blue-600',
     prikk: 'bg-blue-600',
     pille: 'bg-blue-100 text-blue-800 ring-blue-200',
+    diagram: '#2563eb',
   },
   pagaende: {
     navn: 'Pågående',
@@ -68,6 +71,7 @@ export const STATUSER: Record<Status, { navn: string; kort: string; marg: string
     marg: 'bg-amber-400',
     prikk: 'bg-amber-400',
     pille: 'bg-amber-100 text-amber-900 ring-amber-200',
+    diagram: '#f59e0b',
   },
   ferdig: {
     navn: 'Ferdig',
@@ -75,6 +79,7 @@ export const STATUSER: Record<Status, { navn: string; kort: string; marg: string
     marg: 'bg-emerald-600',
     prikk: 'bg-emerald-600',
     pille: 'bg-emerald-100 text-emerald-800 ring-emerald-200',
+    diagram: '#10b981',
   },
   ingen_sak: {
     navn: 'Ingen sak',
@@ -82,6 +87,7 @@ export const STATUSER: Record<Status, { navn: string; kort: string; marg: string
     marg: 'bg-rose-600',
     prikk: 'bg-rose-600',
     pille: 'bg-rose-100 text-rose-800 ring-rose-200',
+    diagram: '#be123c',
   },
 };
 
@@ -89,7 +95,13 @@ export const STATUS_REKKEFOLGE: Status[] = ['ny', 'pagaende', 'ferdig', 'ingen_s
 
 export const erApen = (sak: Sak) => sak.status === 'ny' || sak.status === 'pagaende';
 
-export const PROSJEKTLEDERE = ['Alexander', 'Ståle', 'Baard'];
+export const SAKSBEHANDLERE = ['Alexander', 'Ståle', 'Atle', 'Silvino'];
+
+// Gjør "alexander b." eller "ATLE" om til navnet slik det står i listen.
+export const normaliserSaksbehandler = (navn: string) => {
+  const forste = navn.trim().split(/\s+/)[0]?.toLowerCase();
+  return SAKSBEHANDLERE.find(s => s.toLowerCase() === forste) || navn.trim();
+};
 
 // ===== LØPETID OG VARSLER =====
 const DAG_MS = 24 * 60 * 60 * 1000;
@@ -99,11 +111,10 @@ export const dagerApen = (sak: Sak, na: number) => {
   return Math.max(0, Math.floor((slutt - new Date(sak.opprettet).getTime()) / DAG_MS));
 };
 
-export const lopetidTekst = (sak: Sak, na: number) => {
-  const dager = dagerApen(sak, na);
-  const tid = dager === 0 ? 'under 1 dag' : dager === 1 ? '1 dag' : `${dager} dager`;
-  return erApen(sak) ? `Åpen i ${tid}` : `Var åpen i ${tid}`;
-};
+export const dagerTekst = (dager: number) => `${dager} ${dager === 1 ? 'dag' : 'dager'}`;
+
+export const lopetidTekst = (sak: Sak, na: number) =>
+  `${erApen(sak) ? 'Åpen i' : 'Var åpen i'} ${dagerTekst(dagerApen(sak, na))}`;
 
 export interface Varsel {
   niva: 2 | 15 | 30;
@@ -160,7 +171,7 @@ export const nyId = () => `${Date.now().toString(36)}-${Math.random().toString(3
 
 export type Kundefelter = Pick<
   Sak,
-  'navn' | 'adresse' | 'postnummer' | 'poststed' | 'telefon' | 'epost' | 'prosjektleder' | 'beskrivelse'
+  'navn' | 'adresse' | 'postnummer' | 'poststed' | 'telefon' | 'epost' | 'saksbehandler' | 'beskrivelse'
 >;
 
 export const tommeKundefelter = (): Kundefelter => ({
@@ -170,14 +181,40 @@ export const tommeKundefelter = (): Kundefelter => ({
   poststed: '',
   telefon: '',
   epost: '',
-  prosjektleder: '',
+  saksbehandler: '',
   beskrivelse: '',
 });
 
-export const lagSak = (felter: Kundefelter): Sak => {
+export const nesteSaksnummer = (saker: Pick<Sak, 'saksnummer'>[], dato = new Date()) => {
+  const ar = dato.getFullYear();
+  const hoyeste = saker.reduce((maks, s) => {
+    const [sakAr, lopenr] = (s.saksnummer || '').split('-').map(Number);
+    return sakAr === ar && lopenr > maks ? lopenr : maks;
+  }, 0);
+  return `${ar}-${String(hoyeste + 1).padStart(3, '0')}`;
+};
+
+// Gir saksnummer til saker som mangler det (fra eldre versjoner), i rekkefølgen de ble opprettet.
+export const tildelSaksnummer = (saker: Sak[]): Sak[] => {
+  const ferdige = saker.filter(s => s.saksnummer);
+  const nye = new Map<string, string>();
+  [...saker]
+    .filter(s => !s.saksnummer)
+    .sort((a, b) => a.opprettet.localeCompare(b.opprettet))
+    .forEach(s => {
+      const nummer = nesteSaksnummer(ferdige, new Date(s.opprettet));
+      nye.set(s.id, nummer);
+      ferdige.push({ ...s, saksnummer: nummer });
+    });
+  return saker.map(s => (nye.has(s.id) ? { ...s, saksnummer: nye.get(s.id)! } : s));
+};
+
+export const lagSak = (felter: Kundefelter, saksnummer = ''): Sak => {
   const na = new Date().toISOString();
   return {
     ...felter,
+    saksbehandler: normaliserSaksbehandler(felter.saksbehandler),
+    saksnummer,
     id: nyId(),
     opprettet: na,
     status: 'ny',
@@ -198,10 +235,10 @@ export const lagreSaker = (saker: Sak[]) => localStorage.setItem(NOKKEL, JSON.st
 export const lastSaker = (): Sak[] => {
   try {
     const lagret = localStorage.getItem(NOKKEL);
-    if (lagret) return (JSON.parse(lagret) as Sak[]).map(fyllInnManglende);
+    if (lagret) return tildelSaksnummer((JSON.parse(lagret) as Sak[]).map(fyllInnManglende));
     const gammel = localStorage.getItem(GAMMEL_NOKKEL);
     if (gammel) {
-      const saker = (JSON.parse(gammel) as GammelProsjekt[]).map(fraGammelt);
+      const saker = tildelSaksnummer((JSON.parse(gammel) as GammelProsjekt[]).map(fraGammelt));
       lagreSaker(saker);
       return saker;
     }
@@ -212,9 +249,11 @@ export const lastSaker = (): Sak[] => {
 };
 
 // Sørger for at saker fra eldre versjoner eller importerte filer har alle felter.
-export const fyllInnManglende = (sak: Partial<Sak>): Sak => ({
+export const fyllInnManglende = ({ prosjektleder, ...sak }: Partial<Sak> & { prosjektleder?: string }): Sak => ({
   ...lagSak(tommeKundefelter()),
   ...sak,
+  saksbehandler: sak.saksbehandler ?? prosjektleder ?? '',
+  saksnummer: sak.saksnummer || '',
   pris: { ...tomPris(), ...(sak.pris || {}) },
   notater: sak.notater || [],
   aktiviteter: sak.aktiviteter || [],
@@ -272,7 +311,7 @@ const fraGammelt = (p: GammelProsjekt): Sak => {
     opprettet,
     status: GAMMEL_STATUS[p.status] || 'ny',
     navn: p.kunde || '',
-    prosjektleder: p.ansvarlig && p.ansvarlig !== 'Fakturert' ? p.ansvarlig : '',
+    saksbehandler: p.ansvarlig && p.ansvarlig !== 'Fakturert' ? p.ansvarlig : '',
     beskrivelse: p.notat || '',
     notater: (p.hurtignotater || []).map(n => ({ id: String(n.id), tidspunkt: new Date(n.id).toISOString(), tekst: n.tekst })),
     aktiviteter: (p.aktiviteter || []).map(a => ({ id: String(a.id), tidspunkt: new Date(a.id).toISOString(), tekst: a.handling })),

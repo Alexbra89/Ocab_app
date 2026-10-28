@@ -19,13 +19,14 @@ const dato = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('nb-NO') 
 export const eksporterExcel = (saker: Sak[]) => {
   const na = Date.now();
   const kolonner: [string, (s: Sak) => string | number][] = [
+    ['Saksnummer', s => s.saksnummer],
     ['Navn', s => s.navn],
     ['Adresse', s => s.adresse],
     ['Postnummer', s => s.postnummer],
     ['Poststed', s => s.poststed],
     ['Telefon', s => s.telefon],
     ['E-post', s => s.epost],
-    ['Prosjektleder', s => s.prosjektleder],
+    ['Saksbehandler', s => s.saksbehandler],
     ['Status', s => STATUSER[s.status].navn],
     ['Opprettet', s => dato(s.opprettet)],
     ['Avsluttet', s => dato(s.avsluttet)],
@@ -54,22 +55,22 @@ export const lastNedTilbud = (sak: Sak, firma: FirmaInfo) => {
 
   const innhold = `<!DOCTYPE html><html lang="no"><head><meta charset="UTF-8"><title>Tilbud – ${html(sak.navn)}</title><style>
 body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#0f172a;max-width:780px;margin:48px auto;padding:0 24px}
-.topp{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0f172a;padding-bottom:20px}
-.logo{font-size:28px;font-weight:800;letter-spacing:-.02em}.firma{text-align:right;font-size:13px;color:#475569;line-height:1.6}
+.topp{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #006cb7;padding-bottom:20px}
+.logo{font-size:30px;font-weight:700;color:#006cb7;letter-spacing:-.02em}.firma{text-align:right;font-size:13px;color:#475569;line-height:1.6}
 h1{font-size:22px;margin:32px 0 16px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .boks{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px}.l{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#64748b}
 .v{margin-top:4px;font-size:15px}table{width:100%;border-collapse:collapse;margin:28px 0;font-size:14px}
 th,td{padding:10px 8px;border-bottom:1px solid #e2e8f0;text-align:left}th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#64748b}
-.h{text-align:right}.rabatt{color:#b45309}.sum td{font-weight:700}.total{background:#0f172a;color:#fff;border-radius:12px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center}
+.h{text-align:right}.rabatt{color:#b45309}.sum td{font-weight:700}.total{background:#006cb7;color:#fff;border-radius:12px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center}
 .total b{font-size:28px}.signatur{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:64px}.linje{border-top:1px solid #0f172a;padding-top:6px;font-size:12px;color:#64748b}
 .fot{margin-top:48px;font-size:12px;color:#64748b;text-align:center}</style></head><body>
-<div class="topp"><div><div class="logo">OCAB</div><div style="color:#475569;font-size:13px">${html(firma.navn)}</div></div>
+<div class="topp"><div><div class="logo">Ocab</div><div style="color:#475569;font-size:13px">${html(firma.navn)}</div></div>
 <div class="firma">Org.nr ${html(firma.orgNr)}<br>${html(firma.telefon)}<br>${html(firma.epost)}<br>${html(firma.adresse)}</div></div>
-<h1>Tilbud</h1><div class="grid">
+<h1>Tilbud <span style="color:#64748b;font-weight:400">· sak ${html(sak.saksnummer)}</span></h1><div class="grid">
 <div class="boks"><div class="l">Kunde</div><div class="v">${html(sak.navn)}</div></div>
 <div class="boks"><div class="l">Adresse</div><div class="v">${html(sak.adresse)}${sak.postnummer ? `, ${html(sak.postnummer)} ${html(sak.poststed)}` : ''}</div></div>
 <div class="boks"><div class="l">Kontakt</div><div class="v">${html(sak.telefon)}${sak.epost ? ` · ${html(sak.epost)}` : ''}</div></div>
-<div class="boks"><div class="l">Prosjektleder</div><div class="v">${html(sak.prosjektleder || '–')}</div></div></div>
+<div class="boks"><div class="l">Saksbehandler</div><div class="v">${html(sak.saksbehandler || '–')}</div></div></div>
 <table><thead><tr><th>Post</th><th>Detaljer</th><th class="h">Beløp</th></tr></thead><tbody>
 ${rad('Arbeid', p.prisType === 'timespris' ? `${p.timer} t × ${SATSER[p.rolle]} kr (${p.rolle})` : 'Fastpris', b.grunnlag)}
 ${p.utstyr ? rad('Utstyr og materiell', 'Eks. mva', p.utstyr) : ''}

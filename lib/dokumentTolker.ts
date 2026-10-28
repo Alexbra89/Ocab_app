@@ -11,7 +11,7 @@ const ETIKETTER: Record<keyof Omit<Kundefelter, 'beskrivelse'>, string[]> = {
   poststed: ['poststed', 'sted', 'by'],
   telefon: ['telefon', 'tlf', 'mobil', 'mob', 'telefonnummer', 'phone'],
   epost: ['e-post', 'epost', 'e-mail', 'email', 'mail'],
-  prosjektleder: ['prosjektleder', 'saksbehandler', 'ansvarlig', 'prosjektansvarlig', 'vår kontakt', 'vår ref', 'project manager'],
+  saksbehandler: ['saksbehandler', 'prosjektleder', 'ansvarlig', 'prosjektansvarlig', 'vår kontakt', 'vår ref', 'project manager'],
 };
 
 const EPOST = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;

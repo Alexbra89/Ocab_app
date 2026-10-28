@@ -3,17 +3,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Ikon from './Ikon';
 import { Knapp, KundeFelter, Modal } from './Skjema';
-import { tommeKundefelter, type Kundefelter as KundefelterType } from '@/lib/saker';
+import { normaliserSaksbehandler, tommeKundefelter, type Kundefelter as KundefelterType } from '@/lib/saker';
 
 const FELTNAVN: Record<string, string> = {
   navn: 'navn', adresse: 'adresse', postnummer: 'postnummer', poststed: 'poststed',
-  telefon: 'telefon', epost: 'e-post', prosjektleder: 'prosjektleder',
+  telefon: 'telefon', epost: 'e-post', saksbehandler: 'saksbehandler',
 };
 
-export default function NyKundeModal({ startMedOpplasting, onLagre, onLukk }: {
-  startMedOpplasting: boolean; onLagre: (felter: KundefelterType) => void; onLukk: () => void;
+export default function NyKundeModal({ startMedOpplasting, saksbehandler, onLagre, onLukk }: {
+  startMedOpplasting: boolean; saksbehandler: string; onLagre: (felter: KundefelterType) => void; onLukk: () => void;
 }) {
-  const [felter, setFelter] = useState<KundefelterType>(tommeKundefelter());
+  // Står du i en saksbehandlers liste, blir den nye saken hans/hennes med en gang.
+  const [felter, setFelter] = useState<KundefelterType>({ ...tommeKundefelter(), saksbehandler });
   const [fremhevet, setFremhevet] = useState<string[]>([]);
   const [leser, setLeser] = useState(false);
   const [melding, setMelding] = useState<{ type: 'ok' | 'feil'; tekst: string } | null>(null);
@@ -33,6 +34,7 @@ export default function NyKundeModal({ startMedOpplasting, onLagre, onLukk }: {
       const svar = await (await fetch('/api/les-dokument', { method: 'POST', body: data })).json();
       if (!svar.ok) throw new Error(svar.feil);
       const funnet = svar.felter as Partial<KundefelterType>;
+      if (funnet.saksbehandler) funnet.saksbehandler = normaliserSaksbehandler(funnet.saksbehandler);
       const navn = Object.keys(funnet);
       setFelter(f => ({ ...f, ...funnet }));
       setFremhevet(navn);
@@ -64,8 +66,8 @@ export default function NyKundeModal({ startMedOpplasting, onLagre, onLukk }: {
         onDragLeave={() => setDrar(false)}
         onDrop={e => { e.preventDefault(); setDrar(false); const f = e.dataTransfer.files[0]; if (f) lesDokument(f); }}
         onClick={() => filInput.current?.click()}
-        className={`mb-6 flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-dashed px-5 py-4 transition ${drar ? 'border-slate-900 bg-slate-100' : 'border-slate-300 bg-white hover:border-slate-400'}`}>
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white">
+        className={`mb-6 flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-dashed px-5 py-4 transition ${drar ? 'border-ocab-600 bg-ocab-50' : 'border-slate-300 bg-white hover:border-ocab-400 hover:bg-ocab-50/40'}`}>
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ocab-600 text-white">
           {leser ? <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <Ikon navn="last_opp" className="h-5 w-5" />}
         </div>
         <div className="text-sm">

@@ -5,6 +5,21 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Ocab-blå (#006cb7, hentet fra logoen) med lysere og mørkere trinn */
+@theme {
+  --color-ocab-50: #eef6fc;
+  --color-ocab-100: #d7eaf7;
+  --color-ocab-200: #b0d4ef;
+  --color-ocab-300: #7ab6e2;
+  --color-ocab-400: #3d92d0;
+  --color-ocab-500: #0b78c2;
+  --color-ocab-600: #006cb7;
+  --color-ocab-700: #005899;
+  --color-ocab-800: #004a80;
+  --color-ocab-900: #003d69;
+  --color-ocab-950: #00264a;
+}
+
 body {
   background: #f1f5f9;
   color: #0f172a;

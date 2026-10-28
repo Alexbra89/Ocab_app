@@ -39,7 +39,7 @@ export default function SakModal({ sak, na, onLagre, onSlett, onTilbud, onLukk }
   );
 
   return (
-    <Modal bred tittel={utkast.navn || 'Uten navn'} undertittel={`${STATUSER[utkast.status].navn} · ${lopetidTekst(utkast, na)}`}
+    <Modal bred tittel={utkast.navn || 'Uten navn'} undertittel={`Sak #${utkast.saksnummer} · ${STATUSER[utkast.status].navn} · ${lopetidTekst(utkast, na)}${utkast.saksbehandler ? ` · ${utkast.saksbehandler}` : ''}`}
       onLukk={onLukk}
       bunn={<>
         <Knapp variant="fare" className="mr-auto" onClick={() => confirm(`Slette saken «${utkast.navn}»?`) && onSlett()}>
@@ -92,8 +92,8 @@ export default function SakModal({ sak, na, onLagre, onSlett, onTilbud, onLukk }
               {tall('bompenger', 'Bompenger', 'kr')}
               {tall('rabatt', 'Rabatt', '%')}
             </div>
-            <div className="mt-4 flex items-center justify-between rounded-2xl bg-slate-900 px-5 py-4 text-white">
-              <div className="text-sm text-slate-300">Totalt inkl. mva<div className="text-xs text-slate-400">Eks. mva {kroner(pris.sumEksMva)}</div></div>
+            <div className="mt-4 flex items-center justify-between rounded-2xl bg-ocab-600 px-5 py-4 text-white">
+              <div className="text-sm text-ocab-100">Totalt inkl. mva<div className="text-xs text-ocab-200">Eks. mva {kroner(pris.sumEksMva)}</div></div>
               <div className="text-2xl font-semibold tracking-tight">{kroner(pris.totalInklMva)}</div>
             </div>
           </Seksjon>
