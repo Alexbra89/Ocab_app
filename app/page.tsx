@@ -1,12 +1,9 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
-import { createClient } from '@supabase/supabase-js';
 
-// Supabase konfigurasjon
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Alt lagres lokalt i nettleseren (localStorage) – ingen database eller innlogging
+const LAGRINGSNOKKEL = 'ocab_v81_data';
+const BRUKER = 'Meg';
 
 interface Aktivitet {
   id: number;
@@ -79,11 +76,6 @@ interface FirmaInfo {
 }
 
 export default function OcabProV81PRO() {
-  const [user, setUser] = useState<any>(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [laster, setLaster] = useState(true);
-
   const [firmaInfo, setFirmaInfo] = useState<FirmaInfo>({
     orgNr: '123 456 789',
     telefon: '+47 123 45 678',
@@ -158,45 +150,9 @@ export default function OcabProV81PRO() {
     'Fakturert': '#95a5a6'
   };
 
-  // ===== SUPABASE DATABASE SYNC =====
-  const lastFraSupabase = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('prosjekter')
-        .select('*')
-        .order('id', { ascending: false });
-      
-      if (error) throw error;
-      if (data) setProsjekter(data);
-    } catch (err) {
-      console.error('Feil ved lasting fra Supabase:', err);
-      // Fallback til localStorage
-      const lagret = localStorage.getItem('ocab_v81_data');
-      if (lagret) setProsjekter(JSON.parse(lagret));
-    }
-  };
-
-  const lagreTilSupabase = async (oppdaterteProsjekter: Prosjekt[]) => {
-    if (!user) return;
-    
-    try {
-      // Slett alle eksisterende
-      await supabase.from('prosjekter').delete().neq('id', 0);
-      
-      // Sett inn oppdaterte
-      const { error } = await supabase
-        .from('prosjekter')
-        .insert(oppdaterteProsjekter);
-      
-      if (error) throw error;
-    } catch (err) {
-      console.error('Feil ved lagring til Supabase:', err);
-    }
-    
-    // Alltid behold localStorage som backup
-    localStorage.setItem('ocab_v81_data', JSON.stringify(oppdaterteProsjekter));
+  // ===== LOKAL LAGRING =====
+  const lagreLokalt = (oppdaterteProsjekter: Prosjekt[]) => {
+    localStorage.setItem(LAGRINGSNOKKEL, JSON.stringify(oppdaterteProsjekter));
   };
 
   // ===== LOGG AKTIVITET =====
@@ -208,7 +164,7 @@ export default function OcabProV81PRO() {
             id: Date.now(),
             tidspunkt: new Date().toLocaleString('no-NO'),
             handling,
-            bruker: user?.email || 'System'
+            bruker: BRUKER
           };
           return {
             ...p,
@@ -217,7 +173,7 @@ export default function OcabProV81PRO() {
         }
         return p;
       });
-      lagreTilSupabase(oppdatert);
+      lagreLokalt(oppdatert);
       return oppdatert;
     });
   };
@@ -234,7 +190,7 @@ export default function OcabProV81PRO() {
             id: Date.now(),
             tidspunkt: new Date().toLocaleString('no-NO'),
             tekst: nyHurtignotat,
-            bruker: user?.email || 'Bruker'
+            bruker: BRUKER
           };
           return {
             ...p,
@@ -243,7 +199,7 @@ export default function OcabProV81PRO() {
         }
         return p;
       });
-      lagreTilSupabase(oppdatert);
+      lagreLokalt(oppdatert);
       return oppdatert;
     });
 
@@ -271,7 +227,7 @@ export default function OcabProV81PRO() {
         id: Date.now(),
         tidspunkt: new Date().toLocaleString('no-NO'),
         handling: `Duplisert fra "${originalSak.kunde}"`,
-        bruker: user?.email || 'System'
+        bruker: BRUKER
       }],
       hurtignotater: [],
       paminnelser: []
@@ -279,7 +235,7 @@ export default function OcabProV81PRO() {
 
     setProsjekter(prev => {
       const oppdatert = [duplisert, ...prev];
-      lagreTilSupabase(oppdatert);
+      lagreLokalt(oppdatert);
       return oppdatert;
     });
     alert(`✅ Sak duplisert for "${kundeNavn}"`);
@@ -310,7 +266,7 @@ export default function OcabProV81PRO() {
         }
         return p;
       });
-      lagreTilSupabase(oppdatert);
+      lagreLokalt(oppdatert);
       return oppdatert;
     });
 
@@ -340,13 +296,13 @@ export default function OcabProV81PRO() {
         }
         return p;
       });
-      lagreTilSupabase(oppdatert);
+      lagreLokalt(oppdatert);
       return oppdatert;
     });
   };
 
   // ===== BULK-OPERASJONER =====
-  const toggleValg = (e: React.MouseEvent, prosjektId: number) => {
+  const toggleValg = (e: React.SyntheticEvent, prosjektId: number) => {
     e.stopPropagation();
     setProsjekter(prev => {
       const oppdatert = prev.map(p => p.id === prosjektId ? { ...p, valgt: !p.valgt } : p);
@@ -364,7 +320,7 @@ export default function OcabProV81PRO() {
         }
         return p;
       });
-      lagreTilSupabase(oppdatert);
+      lagreLokalt(oppdatert);
       setAntallValgte(0);
       setBulkModus(false);
       return oppdatert;
@@ -380,7 +336,7 @@ export default function OcabProV81PRO() {
         }
         return p;
       });
-      lagreTilSupabase(oppdatert);
+      lagreLokalt(oppdatert);
       setAntallValgte(0);
       setBulkModus(false);
       return oppdatert;
@@ -391,7 +347,7 @@ export default function OcabProV81PRO() {
     if (!confirm(`Slette ${antallValgte} valgte saker?`)) return;
     setProsjekter(prev => {
       const oppdatert = prev.filter(p => !p.valgt);
-      lagreTilSupabase(oppdatert);
+      lagreLokalt(oppdatert);
       setAntallValgte(0);
       setBulkModus(false);
       return oppdatert;
@@ -486,48 +442,13 @@ export default function OcabProV81PRO() {
     };
   };
 
-  // ===== AUTENTISERING =====
-  useEffect(() => {
-    const sjekkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await lastFraSupabase();
-      }
-      setLaster(false);
-    };
-    sjekkSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await lastFraSupabase();
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      alert("Feil: " + error.message);
-    } else {
-      window.location.reload();
-    }
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.reload();
-  };
-
   // ===== DATA PERSISTENS =====
   useEffect(() => {
+    const lagredeProsjekter = localStorage.getItem(LAGRINGSNOKKEL);
     const lagretFirma = localStorage.getItem('ocab_firma_info');
     const lagredeMaler = localStorage.getItem('ocab_maler');
     
+    if (lagredeProsjekter) setProsjekter(JSON.parse(lagredeProsjekter));
     if (lagretFirma) setFirmaInfo(JSON.parse(lagretFirma));
     if (lagredeMaler) setMaler(JSON.parse(lagredeMaler));
   }, []);
@@ -586,7 +507,7 @@ export default function OcabProV81PRO() {
     e.stopPropagation();
     setProsjekter(prev => {
       const oppdatert = prev.map(p => p.id === prosjektId ? { ...p, varselAvvist: true } : p);
-      lagreTilSupabase(oppdatert);
+      lagreLokalt(oppdatert);
       return oppdatert;
     });
     loggAktivitet(prosjektId, '14-dagers varsel avvist');
@@ -647,7 +568,7 @@ export default function OcabProV81PRO() {
           }
           return p;
         });
-        lagreTilSupabase(oppdatert);
+        lagreLokalt(oppdatert);
         return oppdatert;
       });
     } else {
@@ -662,14 +583,14 @@ export default function OcabProV81PRO() {
           id: Date.now(),
           tidspunkt: new Date().toLocaleString('no-NO'),
           handling: 'Sak opprettet',
-          bruker: user?.email || 'System'
+          bruker: BRUKER
         }],
         hurtignotater: [],
         paminnelser: []
       };
       setProsjekter(prev => {
         const oppdatert = [nytt, ...prev];
-        lagreTilSupabase(oppdatert);
+        lagreLokalt(oppdatert);
         return oppdatert;
       });
     }
@@ -688,7 +609,7 @@ export default function OcabProV81PRO() {
     if(confirm("Slette?")) {
       setProsjekter(prev => {
         const oppdatert = prev.filter(p => p.id !== id);
-        lagreTilSupabase(oppdatert);
+        lagreLokalt(oppdatert);
         return oppdatert;
       });
     }
@@ -698,7 +619,7 @@ export default function OcabProV81PRO() {
     e.stopPropagation();
     setProsjekter(prev => {
       const oppdatert = prev.map(p => p.id === prosjektId ? { ...p, ansvarlig: nyAnsvarlig } : p);
-      lagreTilSupabase(oppdatert);
+      lagreLokalt(oppdatert);
       return oppdatert;
     });
     loggAktivitet(prosjektId, `Flyttet til ${nyAnsvarlig}`);
@@ -711,14 +632,14 @@ export default function OcabProV81PRO() {
         if (p.id === prosjektId) {
           if (nyStatus === 'Sak fakturert') {
             loggAktivitet(prosjektId, `Status: "${nyStatus}" → Fakturert`);
-            return { ...p, status: nyStatus, ansvarlig: 'Fakturert' };
+            return { ...p, status: nyStatus, ansvarlig: 'Fakturert' as const };
           }
           loggAktivitet(prosjektId, `Status: "${nyStatus}"`);
           return { ...p, status: nyStatus };
         }
         return p;
       });
-      lagreTilSupabase(oppdatert);
+      lagreLokalt(oppdatert);
       return oppdatert;
     });
   };
@@ -743,7 +664,7 @@ export default function OcabProV81PRO() {
         const importert = JSON.parse(event.target?.result as string);
         if (confirm(`Importere ${importert.length} saker?`)) {
           setProsjekter(importert);
-          lagreTilSupabase(importert);
+          lagreLokalt(importert);
         }
       } catch (err) {
         alert('Ugyldig fil');
@@ -855,46 +776,6 @@ ${p.notat ? `<div style="background:#f4f7f6;padding:20px;border-radius:8px;margi
   const totalOmsetning = prosjekter.reduce((sum, p) => sum + beregnPris(p).totalInklMva, 0);
   const gjennomsnittsPris = totaltAntall > 0 ? totalOmsetning / totaltAntall : 0;
 
-  if (laster) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f3f4f6' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', color: OCAB_BLA }}>OCAB</div>
-          <div style={{ marginTop: '20px', color: '#666' }}>Laster...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#f3f4f6', padding: '20px' }}>
-        <div style={{ marginBottom: '30px', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '3rem', color: OCAB_BLA, margin: 0 }}>OCAB</h1>
-          <p style={{ color: '#666', marginTop: '10px' }}>Skadedyr & Forebyggende</p>
-        </div>
-        
-        <form onSubmit={handleLogin} style={{ padding: '40px', backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 10px 15px rgba(0,0,0,0.1)', width: '100%', maxWidth: '400px' }}>
-          <h2 style={{ textAlign: 'center', marginBottom: '24px', color: '#1f2937', fontWeight: 'bold' }}>Logg inn</h2>
-          
-          <input type="email" placeholder="E-post" required value={email}
-            style={{ width: '100%', padding: '12px', marginBottom: '12px', border: '1px solid #ccc', borderRadius: '4px', color: 'black', fontSize: '1rem' }} 
-            onChange={e => setEmail(e.target.value)} 
-          />
-          
-          <input type="password" placeholder="Passord" required value={password}
-            style={{ width: '100%', padding: '12px', marginBottom: '24px', border: '1px solid #ccc', borderRadius: '4px', color: 'black', fontSize: '1rem' }} 
-            onChange={e => setPassword(e.target.value)} 
-          />
-          
-          <button type="submit" style={{ width: '100%', padding: '12px', backgroundColor: OCAB_BLA, color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer' }}>
-            Logg inn
-          </button>
-        </form>
-      </div>
-    );
-  }
-
   const avansertStats = beregnAvansertStats();
 
   // Resten av koden fortsetter i neste del pga lengde...
@@ -907,12 +788,10 @@ ${p.notat ? `<div style="background:#f4f7f6;padding:20px;border-radius:8px;margi
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
           <div>
             <h1 style={{ fontSize: '1.3rem', color: OCAB_BLA, fontWeight: '800', margin: 0 }}>OCAB PRO</h1>
-            <p style={{ margin: 0, fontSize: '0.65rem', color: '#666' }}>Alle 8 bonusfunksjoner • Supabase sync</p>
+            <p style={{ margin: 0, fontSize: '0.65rem', color: '#666' }}>Alle 8 bonusfunksjoner • Lagres lokalt</p>
           </div>
           <div style={{ display: 'flex', gap: '5px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.65rem', color: '#666' }}>{user.email?.split('@')[0]}</span>
             <button onClick={() => setVisFirmaRedigering(!visFirmaRedigering)} style={{ ...tinyBtn, backgroundColor: '#9333ea' }}>⚙️</button>
-            <button onClick={handleLogout} style={{ ...tinyBtn, backgroundColor: '#dc2626' }}>🚪</button>
             <button onClick={() => setVisStatistikk(!visStatistikk)} style={{ ...tinyBtn, backgroundColor: visStatistikk ? OCAB_BLA : '#666' }}>📊</button>
             <button onClick={() => setVisMalListe(!visMalListe)} style={{ ...tinyBtn, backgroundColor: '#f59e0b' }}>🎨</button>
             <button onClick={() => setBulkModus(!bulkModus)} style={{ ...tinyBtn, backgroundColor: bulkModus ? '#ef4444' : '#8b5cf6' }}>
@@ -1421,7 +1300,7 @@ ${p.notat ? `<div style="background:#f4f7f6;padding:20px;border-radius:8px;margi
 
       <footer style={{ textAlign: 'center', marginTop: '20px', padding: '10px', color: '#999', fontSize: '0.6rem' }}>
         <div>OCAB PRO v8.1</div>
-        <div style={{ marginTop: '3px' }}>Alle 8 bonus • Supabase sync • Mobil-opt.</div>
+        <div style={{ marginTop: '3px' }}>Alle 8 bonus • Lagres lokalt • Mobil-opt.</div>
       </footer>
     </div>
   );
