@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import Ikon from './Ikon';
+import { useKlikkUtenfor } from './useKlikkUtenfor';
 
-export interface Valg<T extends string> {
+interface Valg<T extends string> {
   verdi: T;
   navn: string;
   merke?: ReactNode; // f.eks. fargeprikk eller initialer foran navnet
@@ -14,15 +15,8 @@ export default function Velger<T extends string>({ verdi, valg, onEndre, knappSt
   verdi: T; valg: Valg<T>[]; onEndre: (v: T) => void; knappStil: string; tomTekst?: string;
 }) {
   const [apen, setApen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useKlikkUtenfor<HTMLDivElement>(apen, () => setApen(false));
   const valgt = valg.find(v => v.verdi === verdi);
-
-  useEffect(() => {
-    if (!apen) return;
-    const lukk = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setApen(false);
-    document.addEventListener('mousedown', lukk);
-    return () => document.removeEventListener('mousedown', lukk);
-  }, [apen]);
 
   return (
     <div ref={ref} className="relative shrink-0">

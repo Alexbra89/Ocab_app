@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import Ikon from './Ikon';
 import { Felt, inputStil, Knapp, KundeFelter, Modal } from './Skjema';
+import { useKlikkUtenfor } from './useKlikkUtenfor';
 import {
-  beregnPris, kroner, lopetidTekst, nyId, nyOppdragLinje, OPPDRAG, OPPDRAG_REKKEFOLGE, ROLLE_REKKEFOLGE, ROLLER,
+  beregnPris, kroner, lopetidTekst, medNotat, nyOppdragLinje, OPPDRAG, OPPDRAG_REKKEFOLGE, ROLLE_REKKEFOLGE, ROLLER,
   STATUS_REKKEFOLGE, STATUSER, type Kundefelter, type OppdragLinje, type OppdragType, type Pris, type Sak,
 } from '@/lib/saker';
 
@@ -32,7 +33,7 @@ export default function SakModal({ sak, na, onLagre, onSlett, onTilbud, onLukk }
 
   const leggTilNotat = () => {
     if (!notat.trim()) return;
-    endre({ notater: [{ id: nyId(), tidspunkt: new Date().toISOString(), tekst: notat.trim() }, ...utkast.notater] });
+    setUtkast(u => medNotat(u, notat.trim()));
     setNotat('');
   };
 
@@ -256,14 +257,7 @@ function Sumlinje({ navn, belop, sterk = false }: { navn: string; belop: number;
 // Nedtrekksmeny med avkrysning – en kunde kan ha flere oppdrag samtidig.
 function OppdragVelger({ valgte, onVeksle }: { valgte: OppdragType[]; onVeksle: (t: OppdragType) => void }) {
   const [apen, setApen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!apen) return;
-    const lukk = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setApen(false);
-    document.addEventListener('mousedown', lukk);
-    return () => document.removeEventListener('mousedown', lukk);
-  }, [apen]);
+  const ref = useKlikkUtenfor<HTMLDivElement>(apen, () => setApen(false));
 
   return (
     <div ref={ref} className="relative mb-3">

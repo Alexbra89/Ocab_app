@@ -123,7 +123,7 @@ export const dagerApen = (sak: Sak, na: number) => {
   return Math.max(0, Math.floor((slutt - new Date(sak.opprettet).getTime()) / DAG_MS));
 };
 
-export const dagerTekst = (dager: number) => `${dager} ${dager === 1 ? 'dag' : 'dager'}`;
+const dagerTekst = (dager: number) => `${dager} ${dager === 1 ? 'dag' : 'dager'}`;
 
 export const lopetidTekst = (sak: Sak, na: number) =>
   `${erApen(sak) ? 'Åpen i' : 'Var åpen i'} ${dagerTekst(dagerApen(sak, na))}`;
@@ -134,7 +134,7 @@ export interface Varsel {
   stil: string;
 }
 
-export const VARSLER: Varsel[] = [
+const VARSLER: Varsel[] = [
   { niva: 30, tekst: 'Over 30 dager uten avslutning – krever handling', stil: 'bg-red-600 text-white ring-red-700 varsel-puls' },
   { niva: 15, tekst: 'Over 15 dager – følg opp saken', stil: 'bg-yellow-300 text-yellow-950 ring-yellow-400' },
   { niva: 2, tekst: 'Over 2 dager – husk å følge opp', stil: 'bg-yellow-100 text-yellow-900 ring-yellow-200' },
@@ -198,11 +198,11 @@ export const beregnPris = (pris: Pris) => {
   return { grunnlag, oppdragSum, kjoreTillegg, sumForRabatt, rabattBelop, sumEksMva, mva, totalInklMva: sumEksMva + mva };
 };
 
+const helKroner = new Intl.NumberFormat('nb-NO', { style: 'currency', currency: 'NOK', maximumFractionDigits: 0 });
+const medOre = new Intl.NumberFormat('nb-NO', { style: 'currency', currency: 'NOK', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 // Viser øre bare når beløpet har det (1 218,75 kr), ellers hele kroner (4 550 kr).
-export const kroner = (belop: number) => {
-  const ore = Math.abs(Math.round(belop * 100) % 100) !== 0 ? 2 : 0;
-  return new Intl.NumberFormat('nb-NO', { style: 'currency', currency: 'NOK', minimumFractionDigits: ore, maximumFractionDigits: ore }).format(belop);
-};
+export const kroner = (belop: number) => (Math.round(belop * 100) % 100 !== 0 ? medOre : helKroner).format(belop);
 
 // ===== OPPRETTING =====
 export const nyId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -247,28 +247,57 @@ export const tildelSaksnummer = (saker: Sak[]): Sak[] => {
   return saker.map(s => (nye.has(s.id) ? { ...s, saksnummer: nye.get(s.id)! } : s));
 };
 
-export const lagSak = (felter: Kundefelter, saksnummer = ''): Sak => {
-  const na = new Date().toISOString();
-  return {
-    ...felter,
-    saksbehandler: normaliserSaksbehandler(felter.saksbehandler),
-    saksnummer,
-    id: nyId(),
-    opprettet: na,
-    status: 'ny',
-    notater: [],
-    aktiviteter: [{ id: nyId(), tidspunkt: na, tekst: 'Sak opprettet' }],
-    lukketVarsel: 0,
-    pris: tomPris(),
-  };
+const hendelse = (tekst: string) => ({ id: nyId(), tidspunkt: new Date().toISOString(), tekst });
+
+export const lagSak = (felter: Kundefelter, saksnummer: string): Sak => ({
+  ...felter,
+  saksbehandler: normaliserSaksbehandler(felter.saksbehandler),
+  saksnummer,
+  id: nyId(),
+  opprettet: new Date().toISOString(),
+  status: 'ny',
+  notater: [],
+  aktiviteter: [hendelse('Sak opprettet')],
+  lukketVarsel: 0,
+  pris: tomPris(),
+});
+
+// ===== ENDRINGER (returnerer en ny sak, så React ser endringen) =====
+export const logg = (sak: Sak, tekst: string): Sak => ({ ...sak, aktiviteter: [hendelse(tekst), ...sak.aktiviteter] });
+
+export const medNotat = (sak: Sak, tekst: string): Sak => ({ ...sak, notater: [hendelse(tekst), ...sak.notater] });
+
+// Ferdig og Ingen sak avslutter saken, så løpetiden stopper. Gjenåpnes den, går løpetiden videre.
+export const medStatus = (sak: Sak, status: Status): Sak => {
+  if (sak.status === status) return sak;
+  const avsluttes = status === 'ferdig' || status === 'ingen_sak';
+  return logg(
+    { ...sak, status, avsluttet: avsluttes ? sak.avsluttet || new Date().toISOString() : undefined },
+    `Status endret fra «${STATUSER[sak.status].navn}» til «${STATUSER[status].navn}»`,
+  );
 };
+
+export const medSaksbehandler = (sak: Sak, navn: string): Sak =>
+  sak.saksbehandler === navn ? sak : logg({ ...sak, saksbehandler: navn },
+    `Saksbehandler endret fra ${sak.saksbehandler || 'ikke tildelt'} til ${navn || 'ikke tildelt'}`);
 
 // ===== LAGRING =====
 const NOKKEL = 'ocab_saker_v2';
 const GAMMEL_NOKKEL = 'ocab_v81_data';
 const FIRMA_NOKKEL = 'ocab_firma_info';
 
-export const lagreSaker = (saker: Sak[]) => localStorage.setItem(NOKKEL, JSON.stringify(saker));
+// Returnerer false hvis nettleseren nekter å lagre (f.eks. full lagringsplass eller privat modus).
+const lagre = (nokkel: string, verdi: unknown) => {
+  try {
+    localStorage.setItem(nokkel, JSON.stringify(verdi));
+    return true;
+  } catch (err) {
+    console.error(`Kunne ikke lagre ${nokkel}:`, err);
+    return false;
+  }
+};
+
+export const lagreSaker = (saker: Sak[]) => lagre(NOKKEL, saker);
 
 export const lastSaker = (): Sak[] => {
   try {
@@ -288,15 +317,18 @@ export const lastSaker = (): Sak[] => {
 
 // Sørger for at saker fra eldre versjoner eller importerte filer har alle felter.
 export const fyllInnManglende = ({ prosjektleder, ...sak }: Partial<Sak> & { prosjektleder?: string }): Sak => ({
-  ...lagSak(tommeKundefelter()),
+  ...tommeKundefelter(),
+  id: nyId(),
+  opprettet: new Date().toISOString(),
+  status: 'ny',
   ...sak,
   saksbehandler: sak.saksbehandler ?? prosjektleder ?? '',
   saksnummer: sak.saksnummer || '',
-  pris: medGyldigRolle({ ...tomPris(), ...(sak.pris || {}) }),
+  pris: medGyldigRolle({ ...tomPris(), ...sak.pris }),
   notater: sak.notater || [],
   aktiviteter: sak.aktiviteter || [],
   lukketVarsel: sak.lukketVarsel || 0,
-} as Sak);
+});
 
 // Eldre saker brukte rollene «tømrer» og «ekspert».
 const medGyldigRolle = (pris: Pris): Pris => {
@@ -317,11 +349,13 @@ export const lastFirma = (): FirmaInfo => {
   try {
     const lagret = localStorage.getItem(FIRMA_NOKKEL);
     if (lagret) return { ...STANDARD_FIRMA, ...JSON.parse(lagret) };
-  } catch {}
+  } catch (err) {
+    console.error('Kunne ikke lese firmainfo:', err);
+  }
   return STANDARD_FIRMA;
 };
 
-export const lagreFirma = (firma: FirmaInfo) => localStorage.setItem(FIRMA_NOKKEL, JSON.stringify(firma));
+export const lagreFirma = (firma: FirmaInfo) => lagre(FIRMA_NOKKEL, firma);
 
 // ===== OVERGANG FRA FORRIGE VERSJON (v8.1) =====
 interface GammelProsjekt {

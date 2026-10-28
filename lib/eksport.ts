@@ -1,6 +1,6 @@
 // Eksport til Excel (CSV), sikkerhetskopi (JSON) og tilbudsdokument.
 
-import { beregnPris, dagerApen, kroner, KM_SATS, OPPDRAG, ROLLER, STATUSER, type FirmaInfo, type Sak } from './saker';
+import { beregnPris, dagerApen, kroner, KM_SATS, OPPDRAG, ROLLER, STATUSER, type FirmaInfo, type Sak } from './saker.ts';
 
 const lastNed = (innhold: BlobPart, filnavn: string, type: string) => {
   const url = URL.createObjectURL(new Blob([innhold], { type }));

@@ -24,7 +24,7 @@ const IKONER = {
   advarsel: <><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /><path d="M12 9v4M12 17h.01" /></>,
 };
 
-export type IkonNavn = keyof typeof IKONER;
+type IkonNavn = keyof typeof IKONER;
 
 export default function Ikon({ navn, className = 'h-4 w-4' }: { navn: IkonNavn; className?: string }) {
   return (

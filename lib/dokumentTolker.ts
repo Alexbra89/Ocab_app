@@ -2,7 +2,7 @@
 // Leter først etter merkede felter ("Navn: ...", "Telefon: ..."), og faller så tilbake
 // på mønstre som e-postadresser, norske telefonnumre og "1234 Poststed".
 
-import type { Kundefelter } from './saker';
+import type { Kundefelter } from './saker.ts';
 
 const ETIKETTER: Record<keyof Omit<Kundefelter, 'beskrivelse'>, string[]> = {
   navn: ['kundenavn', 'kunde', 'navn', 'kontaktperson', 'oppdragsgiver', 'bestiller', 'tiltakshaver', 'eier', 'name', 'fra', 'from'],

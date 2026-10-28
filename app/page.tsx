@@ -5,13 +5,14 @@ import Ikon from './components/Ikon';
 import NyKundeModal from './components/NyKundeModal';
 import SakModal from './components/SakModal';
 import SaksKort from './components/SaksKort';
-import { Felt, Initialer, inputStil, Knapp, Modal } from './components/Skjema';
+import FirmaModal from './components/FirmaModal';
+import { Initialer, Knapp } from './components/Skjema';
 import Topp from './components/Topp';
 import { eksporterExcel, eksporterSikkerhetskopi, lastNedTilbud } from '@/lib/eksport';
 import {
-  aktivtVarsel, erApen, fyllInnManglende, lagreFirma, lagreSaker, lagSak, lastFirma, lastSaker, nesteSaksnummer, nyId,
-  SAKSBEHANDLERE, STATUS_REKKEFOLGE, STATUSER, STANDARD_FIRMA, tildelSaksnummer,
-  type FirmaInfo, type Kundefelter, type Sak, type Status,
+  aktivtVarsel, erApen, fyllInnManglende, lagreFirma, lagreSaker, lagSak, lastFirma, lastSaker, logg, medNotat,
+  medSaksbehandler, medStatus, nesteSaksnummer, SAKSBEHANDLERE, STATUS_REKKEFOLGE, STATUSER, STANDARD_FIRMA,
+  tildelSaksnummer, type FirmaInfo, type Kundefelter, type Sak, type Status,
 } from '@/lib/saker';
 
 type Sortering = 'nyeste' | 'eldste';
@@ -20,29 +21,11 @@ const ALLE = '__alle__';
 const IKKE_TILDELT = '__ingen__';
 const BEHANDLER_NOKKEL = 'ocab_valgt_saksbehandler';
 
-const logg = (sak: Sak, tekst: string): Sak => ({
-  ...sak,
-  aktiviteter: [{ id: nyId(), tidspunkt: new Date().toISOString(), tekst }, ...sak.aktiviteter],
-});
-
-// Endrer status og holder styr på når saken ble avsluttet, så løpetiden stopper.
-const medStatus = (sak: Sak, status: Status): Sak => {
-  if (sak.status === status) return sak;
-  const avsluttes = status === 'ferdig' || status === 'ingen_sak';
-  return logg(
-    { ...sak, status, avsluttet: avsluttes ? sak.avsluttet || new Date().toISOString() : undefined },
-    `Status endret fra «${STATUSER[sak.status].navn}» til «${STATUSER[status].navn}»`,
-  );
-};
-
-const medSaksbehandler = (sak: Sak, navn: string): Sak =>
-  sak.saksbehandler === navn ? sak : logg({ ...sak, saksbehandler: navn },
-    `Saksbehandler endret fra ${sak.saksbehandler || 'ikke tildelt'} til ${navn || 'ikke tildelt'}`);
-
 export default function Hjem() {
   const [saker, setSaker] = useState<Sak[]>([]);
   const [firma, setFirma] = useState<FirmaInfo>(STANDARD_FIRMA);
   const [lastet, setLastet] = useState(false);
+  const [lagringFeilet, setLagringFeilet] = useState(false);
   const [na, setNa] = useState(() => Date.now());
 
   const [behandler, setBehandler] = useState(ALLE);
@@ -69,7 +52,9 @@ export default function Hjem() {
   }, []);
 
   useEffect(() => {
-    if (lastet) lagreSaker(saker);
+    // Lagrer til nettleseren ved hver endring, og viser et varsel hvis det ikke gikk.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (lastet) setLagringFeilet(!lagreSaker(saker));
   }, [saker, lastet]);
 
   const velgBehandler = (navn: string) => {
@@ -161,6 +146,15 @@ export default function Hjem() {
       />
 
       <main className="relative mx-auto -mt-20 max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+        {lagringFeilet && (
+          <div role="alert" className="mb-4 flex items-start gap-3 rounded-2xl bg-red-600 px-5 py-4 text-sm text-white shadow-lg">
+            <Ikon navn="advarsel" className="mt-0.5 h-5 w-5 shrink-0" />
+            <div>
+              <p className="font-semibold">Endringene ble ikke lagret</p>
+              <p className="text-red-100">Nettleseren nekter å lagre (full lagringsplass eller privat modus). Ta en sikkerhetskopi under «Eksporter» nå.</p>
+            </div>
+          </div>
+        )}
         {/* ===== SAKSBEHANDLERE ===== */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           <Behandlerboks navn="Alle" aktiv={behandler === ALLE} onClick={() => velgBehandler(ALLE)}
@@ -229,7 +223,7 @@ export default function Hjem() {
                 onApne={() => setApenSakId(sak.id)}
                 onStatus={status => oppdater(sak.id, s => medStatus(s, status))}
                 onSaksbehandler={navn => oppdater(sak.id, s => medSaksbehandler(s, navn))}
-                onNotat={tekst => oppdater(sak.id, s => ({ ...s, notater: [{ id: nyId(), tidspunkt: new Date().toISOString(), tekst }, ...s.notater] }))}
+                onNotat={tekst => oppdater(sak.id, s => medNotat(s, tekst))}
                 onLukkVarsel={niva => oppdater(sak.id, s => logg({ ...s, lukketVarsel: niva }, `Varsel (${niva} dager) lukket`))}
               />
             ))}
@@ -327,22 +321,5 @@ function Meny({ ikon, tittel, tekst, onClick }: { ikon: 'dokument' | 'last_ned' 
       <Ikon navn={ikon} className="mt-0.5 h-4 w-4 text-ocab-600" />
       <span><span className="block text-sm font-medium text-slate-900">{tittel}</span><span className="block text-xs text-slate-500">{tekst}</span></span>
     </button>
-  );
-}
-
-function FirmaModal({ firma, onLagre, onLukk }: { firma: FirmaInfo; onLagre: (f: FirmaInfo) => void; onLukk: () => void }) {
-  const [utkast, setUtkast] = useState(firma);
-  const felt = (navn: keyof FirmaInfo, etikett: string) => (
-    <Felt etikett={etikett}>
-      <input value={utkast[navn]} onChange={e => setUtkast({ ...utkast, [navn]: e.target.value })} className={inputStil} />
-    </Felt>
-  );
-  return (
-    <Modal tittel="Firmainnstillinger" undertittel="Vises på tilbudene du laster ned." onLukk={onLukk}
-      bunn={<><Knapp onClick={onLukk}>Avbryt</Knapp><Knapp variant="primar" onClick={() => onLagre(utkast)}>Lagre</Knapp></>}>
-      <div className="grid gap-4 sm:grid-cols-2">
-        {felt('navn', 'Firmanavn')}{felt('orgNr', 'Org.nr')}{felt('telefon', 'Telefon')}{felt('epost', 'E-post')}{felt('adresse', 'Adresse')}
-      </div>
-    </Modal>
   );
 }

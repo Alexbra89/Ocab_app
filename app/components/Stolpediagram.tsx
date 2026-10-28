@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import type { Punkt } from '@/lib/statistikk';
 
 export interface Serie {
   nokkel: string;
@@ -8,21 +9,27 @@ export interface Serie {
   farge: string;
 }
 
-export interface Punkt {
-  etikett: string; // vises under stolpen, f.eks. "okt"
-  tittel: string; // vises i verktøytipset, f.eks. "oktober 2026"
-  verdier: Record<string, number>;
-}
-
-// Toppen av y-aksen: fire like trinn med hele, pene tall (f.eks. 0–3–6–9–12).
+// Toppen av y-aksen: fire like trinn med pene tall (0–3–6–9–12, 0–25k–50k–75k–100k …).
 const pentMaks = (maks: number) => {
-  const trinn = [1, 2, 3, 4, 5, 10, 15, 20, 25, 50, 75, 100, 150, 200, 250, 500, 1000];
-  const steg = trinn.find(t => t * 4 >= maks) || Math.ceil(maks / 4);
-  return steg * 4;
+  if (maks <= 0) return 4;
+  const storrelse = 10 ** Math.floor(Math.log10(maks / 4));
+  // Bare hele trinn, så antall saker aldri får aksetall som 2,5.
+  const steg = [1, 2, 2.5, 3, 5, 10].map(f => f * storrelse).filter(Number.isInteger).find(t => t * 4 >= maks)!;
+  return Math.max(4, steg * 4);
+};
+
+// Korte tall til akse og stolpetopper: 950, 12k, 1,2 mill.
+const kortTall = (n: number) => {
+  if (Math.abs(n) >= 1e6) return `${(n / 1e6).toLocaleString('nb-NO', { maximumFractionDigits: 1 })} mill`;
+  if (Math.abs(n) >= 1e4) return `${Math.round(n / 1e3)}k`;
+  if (Math.abs(n) >= 1e3) return `${(n / 1e3).toLocaleString('nb-NO', { maximumFractionDigits: 1 })}k`;
+  return String(Math.round(n));
 };
 
 // Stolpediagram (stablet når det er flere serier) laget med vanlig HTML, med verktøytips og tabellvisning.
-export default function Stolpediagram({ punkter, serier, hoyde = 220 }: { punkter: Punkt[]; serier: Serie[]; hoyde?: number }) {
+export default function Stolpediagram({ punkter, serier, hoyde = 220, formater = String }: {
+  punkter: Punkt[]; serier: Serie[]; hoyde?: number; formater?: (n: number) => string;
+}) {
   const [hover, setHover] = useState<number | null>(null);
   const [visTabell, setVisTabell] = useState(false);
   const sum = (p: Punkt) => serier.reduce((s, x) => s + (p.verdier[x.nokkel] || 0), 0);
@@ -44,9 +51,9 @@ export default function Stolpediagram({ punkter, serier, hoyde = 220 }: { punkte
       {!visTabell ? (
         <div className="flex gap-3">
           {/* Y-akse */}
-          <div className="relative w-6 shrink-0 text-right text-[11px] tabular-nums text-slate-400" style={{ height: hoyde }}>
+          <div className="relative w-9 shrink-0 text-right text-[11px] tabular-nums text-slate-400" style={{ height: hoyde }}>
             {linjer.map(v => (
-              <span key={v} className="absolute right-0" style={{ bottom: `${(v / maks) * 100}%`, transform: 'translateY(50%)' }}>{v}</span>
+              <span key={v} className="absolute right-0 translate-y-1/2" style={{ bottom: `${(v / maks) * 100}%` }}>{kortTall(v)}</span>
             ))}
           </div>
 
@@ -63,11 +70,11 @@ export default function Stolpediagram({ punkter, serier, hoyde = 220 }: { punkte
                   const synlige = serier.filter(s => p.verdier[s.nokkel]);
                   return (
                     // Hele kolonnen er treffområdet, så det er lett å treffe små stolper.
-                    <div key={i} className="relative flex h-full flex-1 cursor-default flex-col justify-end"
+                    <div key={p.tittel} className="relative flex h-full flex-1 cursor-default flex-col justify-end"
                       onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
-                      {hover === i && <div className="absolute inset-x-0 bottom-0 top-0 rounded-md bg-ocab-50/70" />}
+                      {hover === i && <div className="absolute inset-0 rounded-md bg-ocab-50/70" />}
                       {total > 0 && (
-                        <div className="relative mb-1 text-center text-[11px] font-semibold tabular-nums text-slate-700">{total}</div>
+                        <div className="relative mb-1 text-center text-[11px] font-semibold tabular-nums text-slate-700">{kortTall(total)}</div>
                       )}
                       <div className="relative mx-auto flex w-full max-w-11 flex-col-reverse gap-[2px]" style={{ height: `${(total / maks) * 100}%` }}>
                         {synlige.map((s, j) => (
@@ -77,18 +84,20 @@ export default function Stolpediagram({ punkter, serier, hoyde = 220 }: { punkte
                       </div>
 
                       {hover === i && (
-                        <div className={`pointer-events-none absolute bottom-full z-10 mb-2 w-44 rounded-xl bg-slate-900 px-3 py-2.5 text-xs text-white shadow-xl ${i > punkter.length / 2 ? 'right-0' : 'left-0'}`}>
+                        <div className={`pointer-events-none absolute bottom-full z-10 mb-2 w-52 rounded-xl bg-slate-900 px-3 py-2.5 text-xs text-white shadow-xl ${i > punkter.length / 2 ? 'right-0' : 'left-0'}`}>
                           <div className="mb-1.5 font-semibold capitalize">{p.tittel}</div>
                           {serier.map(s => (
                             <div key={s.nokkel} className="flex items-center justify-between gap-3 py-0.5">
                               <span className="flex items-center gap-1.5 text-slate-300">
                                 <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: s.farge }} />{s.navn}
                               </span>
-                              <span className="font-semibold tabular-nums">{p.verdier[s.nokkel] || 0}</span>
+                              <span className="font-semibold tabular-nums">{formater(p.verdier[s.nokkel] || 0)}</span>
                             </div>
                           ))}
                           {serier.length > 1 && (
-                            <div className="mt-1 flex justify-between border-t border-white/15 pt-1 font-semibold"><span>Totalt</span><span className="tabular-nums">{total}</span></div>
+                            <div className="mt-1 flex justify-between border-t border-white/15 pt-1 font-semibold">
+                              <span>Totalt</span><span className="tabular-nums">{formater(total)}</span>
+                            </div>
                           )}
                         </div>
                       )}
@@ -99,7 +108,7 @@ export default function Stolpediagram({ punkter, serier, hoyde = 220 }: { punkte
             </div>
             <div className="mt-2 flex gap-1 sm:gap-2">
               {punkter.map((p, i) => (
-                <div key={i} className={`flex-1 text-center text-[11px] capitalize ${hover === i ? 'font-semibold text-slate-900' : 'text-slate-500'}`}>{p.etikett}</div>
+                <div key={p.tittel} className={`flex-1 text-center text-[11px] capitalize ${hover === i ? 'font-semibold text-slate-900' : 'text-slate-500'}`}>{p.etikett}</div>
               ))}
             </div>
           </div>
@@ -115,11 +124,11 @@ export default function Stolpediagram({ punkter, serier, hoyde = 220 }: { punkte
               </tr>
             </thead>
             <tbody>
-              {punkter.map((p, i) => (
-                <tr key={i} className="border-b border-slate-100">
+              {punkter.map(p => (
+                <tr key={p.tittel} className="border-b border-slate-100">
                   <td className="py-2 pr-4 capitalize text-slate-700">{p.tittel}</td>
-                  {serier.map(s => <td key={s.nokkel} className="py-2 pr-4 text-right tabular-nums text-slate-900">{p.verdier[s.nokkel] || 0}</td>)}
-                  {serier.length > 1 && <td className="py-2 text-right font-semibold tabular-nums text-slate-900">{sum(p)}</td>}
+                  {serier.map(s => <td key={s.nokkel} className="py-2 pr-4 text-right tabular-nums text-slate-900">{formater(p.verdier[s.nokkel] || 0)}</td>)}
+                  {serier.length > 1 && <td className="py-2 text-right font-semibold tabular-nums text-slate-900">{formater(sum(p))}</td>}
                 </tr>
               ))}
             </tbody>

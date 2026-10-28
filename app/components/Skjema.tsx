@@ -2,7 +2,7 @@
 
 // Felles byggeklosser for skjemaer og vinduer.
 
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import Ikon from './Ikon';
 import { SAKSBEHANDLERE, type Kundefelter } from '@/lib/saker';
 
@@ -36,12 +36,18 @@ export function Knapp({ children, variant = 'sekundar', className = '', ...rest 
 export function Modal({ tittel, undertittel, onLukk, children, bunn, bred = false }: {
   tittel: string; undertittel?: string; onLukk: () => void; children: ReactNode; bunn?: ReactNode; bred?: boolean;
 }) {
+  const lukk = useRef(onLukk);
   useEffect(() => {
-    const esc = (e: KeyboardEvent) => e.key === 'Escape' && onLukk();
+    lukk.current = onLukk;
+  });
+
+  // Esc lukker vinduet, og siden bak låses mens vinduet er åpent.
+  useEffect(() => {
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && lukk.current();
     document.addEventListener('keydown', esc);
     document.body.style.overflow = 'hidden';
     return () => { document.removeEventListener('keydown', esc); document.body.style.overflow = ''; };
-  }, [onLukk]);
+  }, []);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 backdrop-blur-sm sm:items-center sm:p-6"

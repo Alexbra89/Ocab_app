@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OCAB Pro",
-  description: "Saksoversikt for OCAB – Skadedyr & Forebyggende",
+  title: "Ocab Pro",
+  description: "Saksoversikt for Ocab",
 };
 
 export default function RootLayout({
