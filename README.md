@@ -40,6 +40,7 @@ lib/
   statistikk.ts            Utregning av tall og summer til statistikksiden
   dokumentTolker.ts        Finner navn, adresse, telefon osv. i tekst
   eksport.ts               Excel (CSV), sikkerhetskopi (JSON) og tilbud
+  demodata.ts              30 fiktive eksempelkunder
 tests/                     Tester for lib/
 ```
 
@@ -50,6 +51,12 @@ tests/                     Tester for lib/
 - **Når varsler slår inn (2, 15, 30 dager):** `VARSLER` i `lib/saker.ts`.
 - **Bakgrunnsbilde og logo (alle sider):** `public/team.jpg` og `public/ocab-logo-hvit.png`.
 - **Farger:** Ocab-blå ligger i `app/globals.css`, statusfarger i `STATUSER` i `lib/saker.ts`.
+
+## Prøve appen med eksempeldata
+
+Under **Eksporter → Last inn 30 eksempelkunder** legges det inn 30 fiktive kunder med ulike statuser,
+løpetider, saksbehandlere og oppdrag. **Eksporter → Fjern eksempelkunder** fjerner dem igjen, uten å røre
+egne saker. Eksempeldataene ligger i `lib/demodata.ts`.
 
 ## Viktig om lagring
 

@@ -8,6 +8,7 @@ import SaksKort from './components/SaksKort';
 import FirmaModal from './components/FirmaModal';
 import { Initialer, Knapp } from './components/Skjema';
 import GlassRamme, { MenyKnapp, SideTopp } from './components/GlassRamme';
+import { erDemo, lagDemoSaker } from '@/lib/demodata';
 import { eksporterExcel, eksporterSikkerhetskopi, lastNedTilbud } from '@/lib/eksport';
 import {
   aktivtVarsel, erApen, fyllInnManglende, lagreFirma, lagreSaker, lagSak, lastFirma, lastSaker, logg, medNotat,
@@ -88,6 +89,19 @@ export default function Hjem() {
     }
   };
 
+  // Eksempelkunder for å prøve appen. De erstatter tidligere eksempelkunder, men rører ikke ekte saker.
+  const lastInnEksempler = () => {
+    setSaker(alle => tildelSaksnummer([...lagDemoSaker(), ...alle.filter(s => !erDemo(s))]));
+    velgBehandler(ALLE);
+    setFilter('alle');
+    setSok('');
+  };
+
+  const antallEksempler = saker.filter(erDemo).length;
+  const fjernEksempler = () => {
+    if (confirm(`Fjerne ${antallEksempler} eksempelkunder? Dine egne saker blir ikke rørt.`)) setSaker(alle => alle.filter(s => !erDemo(s)));
+  };
+
   // Saker for valgt saksbehandler – statusboksene og listen viser bare disse.
   const behandlersSaker = useMemo(() => saker.filter(s =>
     behandler === ALLE || (behandler === IKKE_TILDELT ? !s.saksbehandler : s.saksbehandler === behandler)), [saker, behandler]);
@@ -141,6 +155,13 @@ export default function Hjem() {
                 <div className="my-1 border-t border-white/10" />
                 <Meny ikon="last_opp" tittel="Importer sikkerhetskopi" tekst="Hent inn saker fra .json"
                   onClick={() => { importInput.current?.click(); setVisEksport(false); }} />
+                <div className="my-1 border-t border-white/10" />
+                <Meny ikon="person" tittel="Last inn 30 eksempelkunder" tekst="Fiktive kunder for å prøve appen"
+                  onClick={() => { lastInnEksempler(); setVisEksport(false); }} />
+                {antallEksempler > 0 && (
+                  <Meny ikon="slett" tittel="Fjern eksempelkunder" tekst={`${antallEksempler} fiktive kunder – egne saker beholdes`}
+                    onClick={() => { fjernEksempler(); setVisEksport(false); }} />
+                )}
               </div>
             </>)}
             <input ref={importInput} type="file" accept=".json" className="hidden"
@@ -250,7 +271,8 @@ export default function Hjem() {
               {behandlersSaker.length ? 'Prøv et annet søk eller fjern filteret.' : 'Legg til en kunde, eller last opp et dokument så fylles informasjonen ut for deg.'}
             </p>
             {!behandlersSaker.length && (
-              <div className="mt-6 flex gap-2">
+              <div className="mt-6 flex flex-wrap justify-center gap-2">
+                {!saker.length && <Knapp onClick={lastInnEksempler}><Ikon navn="person" />Last inn 30 eksempelkunder</Knapp>}
                 <Knapp onClick={() => setNyKunde('opplasting')}><Ikon navn="last_opp" />Last opp dokument</Knapp>
                 <Knapp variant="primar" onClick={() => setNyKunde('skjema')}><Ikon navn="pluss" />Legg til kunde</Knapp>
               </div>
@@ -323,7 +345,7 @@ function Statusboks({ tittel, antall, prikk, aktiv, onClick }: {
   );
 }
 
-function Meny({ ikon, tittel, tekst, onClick }: { ikon: 'dokument' | 'last_ned' | 'last_opp'; tittel: string; tekst: string; onClick: () => void }) {
+function Meny({ ikon, tittel, tekst, onClick }: { ikon: 'dokument' | 'last_ned' | 'last_opp' | 'person' | 'slett'; tittel: string; tekst: string; onClick: () => void }) {
   return (
     <button onClick={onClick} className="flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-white/10">
       <Ikon navn={ikon} className="mt-0.5 h-4 w-4 text-sky-300" />

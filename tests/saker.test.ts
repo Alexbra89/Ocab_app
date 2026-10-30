@@ -93,3 +93,18 @@ test('overgang: eldre saker får gyldige felter og nye rollenavn', () => {
   assert.equal(gammel.lukketVarsel, 0);
   assert.equal('prosjektleder' in gammel, false);
 });
+
+test('eksempeldata: 30 kunder med alle statuser, saksbehandlere og varselnivåer', async () => {
+  const { lagDemoSaker, erDemo } = await import('../lib/demodata.ts');
+  const na = Date.now();
+  const saker = lagDemoSaker(na);
+  assert.equal(saker.length, 30);
+  assert.ok(saker.every(erDemo));
+  assert.equal(new Set(saker.map(s => s.id)).size, 30, 'unike id-er');
+  for (const status of ['ny', 'pagaende', 'ferdig', 'ingen_sak']) assert.ok(saker.some(s => s.status === status), status);
+  for (const navn of ['Alexander', 'Ståle', 'Atle', 'Silvino', '']) assert.ok(saker.some(s => s.saksbehandler === navn), navn || 'ikke tildelt');
+  const nivaer = new Set(saker.map(s => aktivtVarsel(s, na)?.niva).filter(Boolean));
+  assert.deepEqual([...nivaer].sort((a, b) => a! - b!), [2, 15, 30]);
+  assert.ok(saker.filter(s => s.status === 'ferdig' || s.status === 'ingen_sak').every(s => s.avsluttet), 'avsluttede saker har dato');
+  assert.ok(saker.every(s => s.notater.every(n => n.tidspunkt >= s.opprettet)), 'notater etter opprettelse');
+});
