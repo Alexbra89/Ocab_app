@@ -12,14 +12,13 @@ import { eksporterExcel, eksporterSikkerhetskopi, lastNedTilbud } from '@/lib/ek
 import {
   aktivtVarsel, erApen, fyllInnManglende, lagreFirma, lagreSaker, lagSak, lastFirma, lastSaker, logg, medNotat,
   medSaksbehandler, medStatus, nesteSaksnummer, SAKSBEHANDLERE, STATUS_REKKEFOLGE, STATUSER, STANDARD_FIRMA,
-  tildelSaksnummer, type FirmaInfo, type Kundefelter, type Sak, type Status,
+  tildelSaksnummer, VALGT_BEHANDLER_NOKKEL, type FirmaInfo, type Kundefelter, type Sak, type Status,
 } from '@/lib/saker';
 
 type Sortering = 'nyeste' | 'eldste';
 type Filter = Status | 'alle' | 'varsler';
 const ALLE = '__alle__';
 const IKKE_TILDELT = '__ingen__';
-const BEHANDLER_NOKKEL = 'ocab_valgt_saksbehandler';
 
 export default function Hjem() {
   const [saker, setSaker] = useState<Sak[]>([]);
@@ -44,8 +43,15 @@ export default function Hjem() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSaker(lastSaker());
     setFirma(lastFirma());
-    try { setBehandler(localStorage.getItem(BEHANDLER_NOKKEL) || ALLE); } catch {}
+    try { setBehandler(localStorage.getItem(VALGT_BEHANDLER_NOKKEL) || ALLE); } catch {}
     setLastet(true);
+
+    // Lenker fra oversiktssiden: /?sok=…, /?ny=kunde|dokument og /?sak=<id>.
+    const lenke = new URLSearchParams(window.location.search);
+    if (lenke.get('sok')) setSok(lenke.get('sok')!);
+    if (lenke.get('ny')) setNyKunde(lenke.get('ny') === 'dokument' ? 'opplasting' : 'skjema');
+    if (lenke.get('sak')) setApenSakId(lenke.get('sak'));
+    if (lenke.size) window.history.replaceState(null, '', '/');
     // Oppdater løpetid og varsler hvert minutt.
     const tidtaker = setInterval(() => setNa(Date.now()), 60_000);
     return () => clearInterval(tidtaker);
@@ -59,7 +65,7 @@ export default function Hjem() {
 
   const velgBehandler = (navn: string) => {
     setBehandler(navn);
-    try { localStorage.setItem(BEHANDLER_NOKKEL, navn); } catch {}
+    try { localStorage.setItem(VALGT_BEHANDLER_NOKKEL, navn); } catch {}
   };
 
   const oppdater = (id: string, endre: (s: Sak) => Sak) => setSaker(alle => alle.map(s => (s.id === id ? endre(s) : s)));
@@ -112,8 +118,7 @@ export default function Hjem() {
       <Topp
         tittel={behandler === ALLE ? 'Saksoversikt' : `${behandlerNavn} sine saker`}
         undertittel={<>
-          {new Date(na).toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' })}
-          {' · '}{behandlersSaker.filter(erApen).length} åpne saker
+          {lastet && <>{new Date(na).toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' })}{' · '}</>}{behandlersSaker.filter(erApen).length} åpne saker
           {antallVarsler > 0 && <> · <span className="font-semibold text-amber-200">{antallVarsler} trenger oppfølging</span></>}
         </>}
         handlinger={<>

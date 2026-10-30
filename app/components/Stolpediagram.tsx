@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Punkt } from '@/lib/statistikk';
+import { kortTall, type Punkt } from '@/lib/statistikk';
 
 export interface Serie {
   nokkel: string;
@@ -16,14 +16,6 @@ const pentMaks = (maks: number) => {
   // Bare hele trinn, så antall saker aldri får aksetall som 2,5.
   const steg = [1, 2, 2.5, 3, 5, 10].map(f => f * storrelse).filter(Number.isInteger).find(t => t * 4 >= maks)!;
   return Math.max(4, steg * 4);
-};
-
-// Korte tall til akse og stolpetopper: 950, 12k, 1,2 mill.
-const kortTall = (n: number) => {
-  if (Math.abs(n) >= 1e6) return `${(n / 1e6).toLocaleString('nb-NO', { maximumFractionDigits: 1 })} mill`;
-  if (Math.abs(n) >= 1e4) return `${Math.round(n / 1e3)}k`;
-  if (Math.abs(n) >= 1e3) return `${(n / 1e3).toLocaleString('nb-NO', { maximumFractionDigits: 1 })}k`;
-  return String(Math.round(n));
 };
 
 // Stolpediagram (stablet når det er flere serier) laget med vanlig HTML, med verktøytips og tabellvisning.

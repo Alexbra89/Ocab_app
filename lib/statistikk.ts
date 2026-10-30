@@ -3,7 +3,7 @@
 
 import {
   beregnPris, dagerApen, erApen, OPPDRAG, OPPDRAG_REKKEFOLGE, SAKSBEHANDLERE, STATUS_REKKEFOLGE,
-  type OppdragType, type Sak,
+  type OppdragType, type Sak, type Status,
 } from './saker.ts';
 
 export interface Punkt {
@@ -117,5 +117,44 @@ export const lagStatistikk = (saker: Sak[], maaneder: Maaned[], mva: Mva, na: nu
         sum: sum(linjer.map(o => o.antall * o.pris)) * (mva === 'inkl' ? 1.25 : 1),
       };
     }),
+  };
+};
+
+// Korte tall til akser og stolpetopper: 950, 12k, 1,2 mill.
+export const kortTall = (n: number) => {
+  if (Math.abs(n) >= 1e6) return `${(n / 1e6).toLocaleString('nb-NO', { maximumFractionDigits: 1 })} mill`;
+  if (Math.abs(n) >= 1e4) return `${Math.round(n / 1e3)}k`;
+  if (Math.abs(n) >= 1e3) return `${(n / 1e3).toLocaleString('nb-NO', { maximumFractionDigits: 1 })}k`;
+  return String(Math.round(n));
+};
+
+// Prosentvis endring fra forrige periode. null når det ikke finnes noe å sammenligne med.
+export const endring = (na: number, forrige: number) => (forrige ? ((na - forrige) / forrige) * 100 : null);
+
+// Tall til oversiktssiden: denne måneden mot forrige, fordeling, fullføringsgrad og siste saker.
+export const lagOversikt = (saker: Sak[], na: number) => {
+  const maaneder = sisteMaaneder(12, new Date(na));
+  const stat = lagStatistikk(saker, maaneder, 'eks', na);
+  const denne = maaneder[11].nokkel;
+  const forrige = maaneder[10].nokkel;
+  const iMaaned = (iso: string | undefined, nokkel: string) => !!iso && maanedNokkel(iso) === nokkel;
+  const ferdigI = (nokkel: string) => saker.filter(s => s.status === 'ferdig' && iMaaned(s.avsluttet, nokkel));
+  const nyeI = (nokkel: string) => saker.filter(s => iMaaned(s.opprettet, nokkel));
+
+  // Andel av avsluttede saker siste 12 mnd som endte som «Ferdig» (resten ble «Ingen sak»).
+  const avsluttet = saker.filter(s => !erApen(s) && s.avsluttet && maaneder.some(m => m.nokkel === maanedNokkel(s.avsluttet!)));
+  const fullforingsgrad = avsluttet.length ? avsluttet.filter(s => s.status === 'ferdig').length / avsluttet.length : null;
+
+  return {
+    stat,
+    verdiDenne: sum(ferdigI(denne).map(s => sakVerdi(s, 'eks'))),
+    verdiForrige: sum(ferdigI(forrige).map(s => sakVerdi(s, 'eks'))),
+    nyeDenne: nyeI(denne).length,
+    nyeForrige: nyeI(forrige).length,
+    ferdigeDenne: ferdigI(denne).length,
+    fullforingsgrad,
+    antallAvsluttet: avsluttet.length,
+    statusFordeling: Object.fromEntries(STATUS_REKKEFOLGE.map(st => [st, saker.filter(s => s.status === st).length])) as Record<Status, number>,
+    sisteSaker: [...saker].sort((a, b) => b.opprettet.localeCompare(a.opprettet)).slice(0, 6),
   };
 };

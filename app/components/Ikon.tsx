@@ -21,6 +21,11 @@ const IKONER = {
   hake: <path d="M20 6 9 17l-5-5" />,
   pil_ned: <path d="m6 9 6 6 6-6" />,
   notat: <><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" /></>,
+  rutenett: <><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></>,
+  diagram: <><path d="M3 3v18h18" /><path d="M7 16v-5M12 16V8M17 16v-8" /></>,
+  trend_opp: <><path d="m22 7-8.5 8.5-5-5L2 17" /><path d="M16 7h6v6" /></>,
+  trend_ned: <><path d="m22 17-8.5-8.5-5 5L2 7" /><path d="M16 17h6v-6" /></>,
+  pil_hoyre: <path d="M5 12h14M13 6l6 6-6 6" />,
   advarsel: <><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /><path d="M12 9v4M12 17h.01" /></>,
 };
 

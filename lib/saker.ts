@@ -109,6 +109,9 @@ export const erApen = (sak: Sak) => sak.status === 'ny' || sak.status === 'pagae
 
 export const SAKSBEHANDLERE = ['Alexander', 'Ståle', 'Atle', 'Silvino'];
 
+// Hvilken saksbehandler som sist ble valgt i saksoversikten (huskes per nettleser).
+export const VALGT_BEHANDLER_NOKKEL = 'ocab_valgt_saksbehandler';
+
 // Gjør "alexander b." eller "ATLE" om til navnet slik det står i listen.
 export const normaliserSaksbehandler = (navn: string) => {
   const forste = navn.trim().split(/\s+/)[0]?.toLowerCase();

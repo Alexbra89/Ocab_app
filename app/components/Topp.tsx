@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 const SIDER = [
+  { href: '/oversikt', navn: 'Oversikt' },
   { href: '/', navn: 'Saker' },
   { href: '/statistikk', navn: 'Statistikk' },
 ];

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { lagSak, nyOppdragLinje, tommeKundefelter, tomPris, type Sak } from '../lib/saker.ts';
-import { lagStatistikk, maanedNokkel, sisteMaaneder } from '../lib/statistikk.ts';
+import { endring, lagOversikt, lagStatistikk, maanedNokkel, sisteMaaneder } from '../lib/statistikk.ts';
 
 const na = new Date(2026, 9, 28, 12); // 28. oktober 2026
 const sak = (endring: Partial<Sak>): Sak => ({ ...lagSak(tommeKundefelter(), ''), ...endring });
@@ -44,4 +44,23 @@ test('statistikk: antall og verdi per måned, status og saksbehandler', () => {
 
   const inkl = lagStatistikk(saker, sisteMaaneder(3, na), 'inkl', na.getTime());
   assert.equal(inkl.nokkeltall.verdiFerdige, 1250);
+});
+
+test('oversikt: denne måneden mot forrige, fullføringsgrad og siste saker', () => {
+  const saker = [
+    sak({ opprettet: new Date(2026, 9, 3).toISOString(), status: 'ferdig', avsluttet: new Date(2026, 9, 20).toISOString(), pris: fastpris(3000) }),
+    sak({ opprettet: new Date(2026, 8, 3).toISOString(), status: 'ferdig', avsluttet: new Date(2026, 8, 25).toISOString(), pris: fastpris(2000) }),
+    sak({ opprettet: new Date(2026, 8, 10).toISOString(), status: 'ingen_sak', avsluttet: new Date(2026, 9, 1).toISOString() }),
+    sak({ opprettet: new Date(2026, 9, 25).toISOString(), status: 'ny' }),
+  ];
+  const o = lagOversikt(saker, na.getTime());
+  assert.equal(o.verdiDenne, 3000);
+  assert.equal(o.verdiForrige, 2000);
+  assert.equal(o.nyeDenne, 2);
+  assert.equal(o.nyeForrige, 2);
+  assert.equal(o.fullforingsgrad, 2 / 3);
+  assert.deepEqual(o.statusFordeling, { ny: 1, pagaende: 0, ferdig: 2, ingen_sak: 1 });
+  assert.equal(o.sisteSaker[0].status, 'ny', 'nyeste sak først');
+  assert.equal(endring(3000, 2000), 50);
+  assert.equal(endring(5, 0), null);
 });
