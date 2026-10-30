@@ -1,18 +1,20 @@
 'use client';
 
-// Felles byggeklosser for skjemaer og vinduer.
+// Felles byggeklosser for skjemaer og vinduer, i mørk glass-stil.
 
 import { useEffect, useRef, type ReactNode } from 'react';
 import Ikon from './Ikon';
 import { SAKSBEHANDLERE, type Kundefelter } from '@/lib/saker';
 
 export const inputStil =
-  'w-full rounded-xl border-0 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-ocab-600';
+  'w-full rounded-xl border-0 bg-white/[0.06] px-3 py-2.5 text-sm text-white ring-1 ring-white/15 [color-scheme:dark] placeholder:text-white/35 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-ocab-400 [&_option]:bg-slate-900 [&_option]:text-white';
+
+const fremhevetStil = inputStil.replace('bg-white/[0.06]', 'bg-emerald-400/15').replace('ring-white/15', 'ring-emerald-400/50');
 
 export function Felt({ etikett, children, className = '' }: { etikett: string; children: ReactNode; className?: string }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-500">{etikett}</span>
+      <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-white/50">{etikett}</span>
       {children}
     </label>
   );
@@ -21,13 +23,13 @@ export function Felt({ etikett, children, className = '' }: { etikett: string; c
 export function Knapp({ children, variant = 'sekundar', className = '', ...rest }:
   React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primar' | 'sekundar' | 'fare' }) {
   const stiler = {
-    primar: 'bg-ocab-600 text-white shadow-sm hover:bg-ocab-700',
-    sekundar: 'bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-900',
-    fare: 'bg-white text-rose-600 ring-1 ring-rose-200 hover:bg-rose-50',
+    primar: 'bg-gradient-to-b from-ocab-400 to-ocab-600 text-white shadow-[0_8px_24px_-8px_rgba(0,108,183,0.9)] ring-1 ring-white/20 hover:brightness-110',
+    sekundar: 'bg-white/10 text-white ring-1 ring-white/15 backdrop-blur hover:bg-white/15',
+    fare: 'bg-rose-500/10 text-rose-200 ring-1 ring-rose-400/30 hover:bg-rose-500/20',
   };
   return (
     <button {...rest}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition disabled:opacity-50 ${stiler[variant]} ${className}`}>
+      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition disabled:opacity-40 ${stiler[variant]} ${className}`}>
       {children}
     </button>
   );
@@ -50,20 +52,20 @@ export function Modal({ tittel, undertittel, onLukk, children, bunn, bred = fals
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 p-0 backdrop-blur-sm sm:items-center sm:p-6"
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 p-0 backdrop-blur-md sm:items-center sm:p-6"
       onMouseDown={e => e.target === e.currentTarget && onLukk()}>
-      <div className={`flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl bg-slate-50 shadow-2xl ring-1 ring-slate-200 sm:rounded-3xl ${bred ? 'sm:max-w-6xl' : 'sm:max-w-2xl'}`}>
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 bg-white px-6 py-4">
+      <div className={`glass-inn flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl bg-slate-900/85 text-white shadow-2xl ring-1 ring-white/15 backdrop-blur-2xl sm:rounded-3xl ${bred ? 'sm:max-w-6xl' : 'sm:max-w-2xl'}`}>
+        <div className="flex items-start justify-between gap-4 border-b border-white/10 px-6 py-4">
           <div className="min-w-0">
-            <h2 className="truncate text-lg font-semibold tracking-tight text-slate-900">{tittel}</h2>
-            {undertittel && <p className="mt-0.5 text-sm text-slate-500">{undertittel}</p>}
+            <h2 className="truncate text-lg font-semibold tracking-tight">{tittel}</h2>
+            {undertittel && <p className="mt-0.5 text-sm text-white/55">{undertittel}</p>}
           </div>
-          <button onClick={onLukk} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-900" title="Lukk">
+          <button onClick={onLukk} className="rounded-lg p-1.5 text-white/50 hover:bg-white/10 hover:text-white" title="Lukk">
             <Ikon navn="lukk" className="h-5 w-5" />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
-        {bunn && <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 bg-white px-6 py-4">{bunn}</div>}
+        {bunn && <div className="flex flex-wrap items-center justify-end gap-2 border-t border-white/10 px-6 py-4">{bunn}</div>}
       </div>
     </div>
   );
@@ -71,7 +73,7 @@ export function Modal({ tittel, undertittel, onLukk, children, bunn, bred = fals
 
 export function Initialer({ navn, aktiv = false, stor = false }: { navn: string; aktiv?: boolean; stor?: boolean }) {
   return (
-    <span className={`flex shrink-0 items-center justify-center rounded-full font-semibold ${stor ? 'h-10 w-10 text-sm' : 'h-6 w-6 text-[10px]'} ${aktiv ? 'bg-white/20 text-white' : 'bg-ocab-100 text-ocab-700'}`}>
+    <span className={`flex shrink-0 items-center justify-center rounded-full font-semibold ring-1 ${stor ? 'h-10 w-10 text-sm' : 'h-6 w-6 text-[10px]'} ${aktiv ? 'bg-white text-slate-900 ring-white' : 'bg-white/10 text-white ring-white/15'}`}>
       {navn.slice(0, 2).toUpperCase()}
     </span>
   );
@@ -84,7 +86,7 @@ export function KundeFelter({ verdier, onEndre, fremhevet = [] }: {
   const felt = (navn: keyof Kundefelter, etikett: string, props: React.InputHTMLAttributes<HTMLInputElement> = {}, className = '') => (
     <Felt etikett={etikett} className={className}>
       <input {...props} value={verdier[navn]} onChange={e => onEndre({ [navn]: e.target.value })}
-        className={fremhevet.includes(navn) ? inputStil.replace('bg-white', 'bg-emerald-50').replace('ring-slate-200', 'ring-emerald-300') : inputStil} />
+        className={fremhevet.includes(navn) ? fremhevetStil : inputStil} />
     </Felt>
   );
 
@@ -101,8 +103,8 @@ export function KundeFelter({ verdier, onEndre, fremhevet = [] }: {
           {[...SAKSBEHANDLERE, ...(verdier.saksbehandler && !SAKSBEHANDLERE.includes(verdier.saksbehandler) ? [verdier.saksbehandler] : [])].map(navn => (
             <button key={navn} type="button" onClick={() => onEndre({ saksbehandler: verdier.saksbehandler === navn ? '' : navn })}
               className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium ring-1 transition ${verdier.saksbehandler === navn
-                ? 'bg-ocab-600 text-white ring-ocab-600'
-                : fremhevet.includes('saksbehandler') ? 'bg-emerald-50 text-slate-700 ring-emerald-300' : 'bg-white text-slate-700 ring-slate-200 hover:bg-ocab-50'}`}>
+                ? 'bg-ocab-500/40 text-white ring-ocab-300/60'
+                : fremhevet.includes('saksbehandler') ? 'bg-emerald-400/15 text-white ring-emerald-400/50' : 'bg-white/[0.06] text-white/80 ring-white/15 hover:bg-white/10'}`}>
               <Initialer navn={navn} aktiv={verdier.saksbehandler === navn} />{navn}
             </button>
           ))}

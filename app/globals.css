@@ -21,8 +21,9 @@
 }
 
 body {
-  background: #f1f5f9;
-  color: #0f172a;
+  background: #020617;
+  color: #fff;
+  color-scheme: dark;
 }
 
 /* Pulserende rødt varsel for saker som har vært åpne i over 30 dager */

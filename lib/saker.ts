@@ -66,42 +66,46 @@ export interface FirmaInfo {
 }
 
 // ===== STATUS =====
+// Fargene er laget for mørk glass-bakgrunn.
 // `kort` = svak farge på hele saksboksen, `marg` = sterk farge i venstre marg.
-// `diagram` er fargen i grafene – kontrollert for fargeblindhet (rødt og grønt skilles på lyshet).
+// `diagram` er fargen i grafene – kontrollert for fargeblindhet i rekkefølgen DIAGRAM_REKKEFOLGE.
 export const STATUSER: Record<Status, { navn: string; kort: string; marg: string; prikk: string; pille: string; diagram: string }> = {
   ny: {
     navn: 'Ny',
-    kort: 'bg-blue-50/80 ring-blue-200/70',
-    marg: 'bg-blue-600',
-    prikk: 'bg-blue-600',
-    pille: 'bg-blue-100 text-blue-800 ring-blue-200',
-    diagram: '#2563eb',
+    kort: 'bg-blue-500/[0.13] ring-blue-400/25',
+    marg: 'bg-blue-500',
+    prikk: 'bg-blue-400',
+    pille: 'bg-blue-500/20 text-blue-100 ring-blue-400/35',
+    diagram: '#3b82f6',
   },
   pagaende: {
     navn: 'Pågående',
-    kort: 'bg-amber-50/80 ring-amber-200/70',
+    kort: 'bg-amber-500/[0.12] ring-amber-400/25',
     marg: 'bg-amber-400',
     prikk: 'bg-amber-400',
-    pille: 'bg-amber-100 text-amber-900 ring-amber-200',
-    diagram: '#f59e0b',
+    pille: 'bg-amber-500/20 text-amber-100 ring-amber-400/35',
+    diagram: '#d97706',
   },
   ferdig: {
     navn: 'Ferdig',
-    kort: 'bg-emerald-50/80 ring-emerald-200/70',
-    marg: 'bg-emerald-600',
-    prikk: 'bg-emerald-600',
-    pille: 'bg-emerald-100 text-emerald-800 ring-emerald-200',
-    diagram: '#10b981',
+    kort: 'bg-emerald-500/[0.12] ring-emerald-400/25',
+    marg: 'bg-emerald-500',
+    prikk: 'bg-emerald-400',
+    pille: 'bg-emerald-500/20 text-emerald-100 ring-emerald-400/35',
+    diagram: '#059669',
   },
   ingen_sak: {
     navn: 'Ingen sak',
-    kort: 'bg-rose-50/80 ring-rose-200/70',
-    marg: 'bg-rose-600',
-    prikk: 'bg-rose-600',
-    pille: 'bg-rose-100 text-rose-800 ring-rose-200',
-    diagram: '#be123c',
+    kort: 'bg-rose-500/[0.12] ring-rose-400/25',
+    marg: 'bg-rose-500',
+    prikk: 'bg-rose-400',
+    pille: 'bg-rose-500/20 text-rose-100 ring-rose-400/35',
+    diagram: '#e11d48',
   },
 };
+
+// Rekkefølgen i stablede grafer og smultringdiagram: grønt og rødt står ikke ved siden av hverandre.
+export const DIAGRAM_REKKEFOLGE: Status[] = ['ny', 'ferdig', 'pagaende', 'ingen_sak'];
 
 export const STATUS_REKKEFOLGE: Status[] = ['ny', 'pagaende', 'ferdig', 'ingen_sak'];
 
@@ -139,8 +143,8 @@ export interface Varsel {
 
 const VARSLER: Varsel[] = [
   { niva: 30, tekst: 'Over 30 dager uten avslutning – krever handling', stil: 'bg-red-600 text-white ring-red-700 varsel-puls' },
-  { niva: 15, tekst: 'Over 15 dager – følg opp saken', stil: 'bg-yellow-300 text-yellow-950 ring-yellow-400' },
-  { niva: 2, tekst: 'Over 2 dager – husk å følge opp', stil: 'bg-yellow-100 text-yellow-900 ring-yellow-200' },
+  { niva: 15, tekst: 'Over 15 dager – følg opp saken', stil: 'bg-yellow-400 text-yellow-950 ring-yellow-300' },
+  { niva: 2, tekst: 'Over 2 dager – husk å følge opp', stil: 'bg-yellow-200/90 text-yellow-950 ring-yellow-100' },
 ];
 
 // Gir det høyeste varselet saken har passert, med mindre det er lukket.

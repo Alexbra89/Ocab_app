@@ -7,7 +7,7 @@ import SakModal from './components/SakModal';
 import SaksKort from './components/SaksKort';
 import FirmaModal from './components/FirmaModal';
 import { Initialer, Knapp } from './components/Skjema';
-import Topp from './components/Topp';
+import GlassRamme, { MenyKnapp, SideTopp } from './components/GlassRamme';
 import { eksporterExcel, eksporterSikkerhetskopi, lastNedTilbud } from '@/lib/eksport';
 import {
   aktivtVarsel, erApen, fyllInnManglende, lagreFirma, lagreSaker, lagSak, lastFirma, lastSaker, logg, medNotat,
@@ -114,8 +114,12 @@ export default function Hjem() {
   const nyttForvalg = behandler === ALLE || behandler === IKKE_TILDELT ? '' : behandler;
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      <Topp
+    <GlassRamme aktiv="saker" ekstraMeny={<>
+      <MenyKnapp onClick={() => setNyKunde('skjema')} ikon="pluss" navn="Legg til kunde" />
+      <MenyKnapp onClick={() => setNyKunde('opplasting')} ikon="last_opp" navn="Last opp dokument" />
+      <MenyKnapp onClick={() => setVisInnstillinger(true)} ikon="innstillinger" navn="Firmainnstillinger" />
+    </>}>
+      <SideTopp
         tittel={behandler === ALLE ? 'Saksoversikt' : `${behandlerNavn} sine saker`}
         undertittel={<>
           {lastet && <>{new Date(na).toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' })}{' · '}</>}{behandlersSaker.filter(erApen).length} åpne saker
@@ -129,12 +133,12 @@ export default function Hjem() {
             </Knapp>
             {visEksport && (<>
               <div className="fixed inset-0 z-30" onClick={() => setVisEksport(false)} />
-              <div className="absolute right-0 z-40 mt-2 w-64 rounded-2xl bg-white p-1.5 text-slate-700 shadow-2xl ring-1 ring-slate-200">
+              <div className="absolute right-0 z-40 mt-2 w-64 rounded-2xl bg-slate-900/95 p-1.5 text-white shadow-2xl ring-1 ring-white/15 backdrop-blur-xl">
                 <Meny ikon="dokument" tittel="Excel (.csv)" tekst={`${synlige.length} saker i visningen`}
                   onClick={() => { eksporterExcel(synlige); setVisEksport(false); }} />
                 <Meny ikon="last_ned" tittel="Sikkerhetskopi (.json)" tekst="Alle saker og innstillinger"
                   onClick={() => { eksporterSikkerhetskopi(saker, firma); setVisEksport(false); }} />
-                <div className="my-1 border-t border-slate-100" />
+                <div className="my-1 border-t border-white/10" />
                 <Meny ikon="last_opp" tittel="Importer sikkerhetskopi" tekst="Hent inn saker fra .json"
                   onClick={() => { importInput.current?.click(); setVisEksport(false); }} />
               </div>
@@ -142,17 +146,16 @@ export default function Hjem() {
             <input ref={importInput} type="file" accept=".json" className="hidden"
               onChange={e => { const f = e.target.files?.[0]; if (f) importer(f); e.target.value = ''; }} />
           </div>
-          <button onClick={() => setVisInnstillinger(true)} title="Firmainnstillinger"
-            className="rounded-xl bg-white p-2.5 text-slate-600 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50">
+          <Knapp onClick={() => setVisInnstillinger(true)} title="Firmainnstillinger" aria-label="Firmainnstillinger" className="px-3 lg:hidden">
             <Ikon navn="innstillinger" />
-          </button>
+          </Knapp>
           <Knapp variant="primar" onClick={() => setNyKunde('skjema')}><Ikon navn="pluss" />Legg til kunde</Knapp>
         </>}
       />
 
-      <main className="relative mx-auto -mt-20 max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+      <main className="mt-6">
         {lagringFeilet && (
-          <div role="alert" className="mb-4 flex items-start gap-3 rounded-2xl bg-red-600 px-5 py-4 text-sm text-white shadow-lg">
+          <div role="alert" className="mb-4 flex items-start gap-3 rounded-2xl bg-red-600/90 px-5 py-4 text-sm text-white shadow-lg ring-1 ring-red-400/50 backdrop-blur">
             <Ikon navn="advarsel" className="mt-0.5 h-5 w-5 shrink-0" />
             <div>
               <p className="font-semibold">Endringene ble ikke lagret</p>
@@ -161,7 +164,7 @@ export default function Hjem() {
           </div>
         )}
         {/* ===== SAKSBEHANDLERE ===== */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="glass-inn grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" style={{ animationDelay: '60ms' }}>
           <Behandlerboks navn="Alle" aktiv={behandler === ALLE} onClick={() => velgBehandler(ALLE)}
             apne={saker.filter(erApen).length} totalt={saker.length} />
           {SAKSBEHANDLERE.map(navn => {
@@ -174,14 +177,14 @@ export default function Hjem() {
         </div>
         {ikkeTildelt > 0 && (
           <button onClick={() => velgBehandler(behandler === IKKE_TILDELT ? ALLE : IKKE_TILDELT)}
-            className={`mt-3 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition ${behandler === IKKE_TILDELT ? 'bg-ocab-600 text-white ring-ocab-600' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'}`}>
+            className={`mt-3 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium ring-1 transition ${behandler === IKKE_TILDELT ? 'bg-white text-slate-900 ring-white' : 'bg-white/10 text-white/75 ring-white/15 backdrop-blur hover:bg-white/15'}`}>
             <Ikon navn="person" className="h-3.5 w-3.5" />{ikkeTildelt} {ikkeTildelt === 1 ? 'sak' : 'saker'} uten saksbehandler
           </button>
         )}
 
         {/* ===== STATUSER ===== */}
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
-          <Statusboks aktiv={filter === 'alle'} onClick={() => setFilter('alle')} tittel="Alle statuser" antall={behandlersSaker.length} prikk="bg-ocab-600" />
+        <div className="glass-inn mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5" style={{ animationDelay: '120ms' }}>
+          <Statusboks aktiv={filter === 'alle'} onClick={() => setFilter('alle')} tittel="Alle statuser" antall={behandlersSaker.length} prikk="bg-sky-300" />
           {STATUS_REKKEFOLGE.map(s => (
             <Statusboks key={s} aktiv={filter === s} onClick={() => setFilter(filter === s ? 'alle' : s)}
               tittel={STATUSER[s].navn} antall={behandlersSaker.filter(x => x.status === s).length} prikk={STATUSER[s].prikk} />
@@ -189,29 +192,29 @@ export default function Hjem() {
         </div>
 
         {/* ===== SØK, SORTERING OG VARSLER ===== */}
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <Ikon navn="sok" className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <div className="glass-inn mt-6 flex flex-col gap-3 sm:flex-row sm:items-center" style={{ animationDelay: '180ms' }}>
+          <div className="glass relative flex-1 rounded-2xl">
+            <Ikon navn="sok" className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
             <input value={sok} onChange={e => setSok(e.target.value)} placeholder="Søk på navn, adresse eller saksnummer…"
-              className="w-full rounded-2xl border-0 bg-white py-3 pl-11 pr-10 text-sm text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-ocab-600" />
+              className="w-full rounded-2xl border-0 bg-transparent py-3 pl-11 pr-10 text-sm text-white placeholder:text-white/45 focus:outline-none focus:ring-2 focus:ring-ocab-400" />
             {sok && (
-              <button onClick={() => setSok('')} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-400 hover:text-slate-900">
+              <button onClick={() => setSok('')} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-white/50 hover:text-white">
                 <Ikon navn="lukk" />
               </button>
             )}
           </div>
           <div className="flex gap-2">
-            <label className="relative">
-              <Ikon navn="sorter" className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <label className="glass relative rounded-2xl">
+              <Ikon navn="sorter" className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
               <select value={sortering} onChange={e => setSortering(e.target.value as Sortering)}
-                className="appearance-none rounded-2xl border-0 bg-white py-3 pl-10 pr-9 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-ocab-600">
+                className="appearance-none rounded-2xl border-0 bg-transparent py-3 pl-10 pr-9 text-sm font-medium text-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-ocab-400 [&_option]:bg-slate-900">
                 <option value="nyeste">Dato: nyeste først</option>
                 <option value="eldste">Dato: eldste først</option>
               </select>
-              <Ikon navn="pil_ned" className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+              <Ikon navn="pil_ned" className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/50" />
             </label>
             <button onClick={() => setFilter(filter === 'varsler' ? 'alle' : 'varsler')}
-              className={`relative inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium shadow-sm ring-1 transition ${filter === 'varsler' ? 'bg-ocab-600 text-white ring-ocab-600' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50'}`}>
+              className={`relative inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium shadow-sm ring-1 transition ${filter === 'varsler' ? 'bg-white text-slate-900 ring-white' : 'glass text-white hover:bg-white/10'}`}>
               <Ikon navn="bjelle" />Varsler
               {antallVarsler > 0 && (
                 <span className="rounded-full bg-red-600 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-white">{antallVarsler}</span>
@@ -236,14 +239,14 @@ export default function Hjem() {
         )}
 
         {lastet && synlige.length === 0 && (
-          <div className="mt-6 flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center shadow-sm ring-1 ring-slate-200">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-ocab-50 text-ocab-600">
+          <div className="glass glass-inn mt-6 flex flex-col items-center rounded-3xl px-6 py-16 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-sky-200 ring-1 ring-white/15">
               <Ikon navn={behandlersSaker.length ? 'sok' : 'dokument'} className="h-6 w-6" />
             </div>
-            <h2 className="mt-4 text-lg font-semibold text-slate-900">
+            <h2 className="mt-4 text-lg font-semibold">
               {behandlersSaker.length ? 'Ingen saker passer søket' : behandler === ALLE ? 'Ingen saker ennå' : `${behandlerNavn} har ingen saker`}
             </h2>
-            <p className="mt-1 max-w-sm text-sm text-slate-500">
+            <p className="mt-1 max-w-sm text-sm text-white/55">
               {behandlersSaker.length ? 'Prøv et annet søk eller fjern filteret.' : 'Legg til en kunde, eller last opp et dokument så fylles informasjonen ut for deg.'}
             </p>
             {!behandlersSaker.length && (
@@ -280,7 +283,7 @@ export default function Hjem() {
         <FirmaModal firma={firma} onLukk={() => setVisInnstillinger(false)}
           onLagre={f => { setFirma(f); lagreFirma(f); setVisInnstillinger(false); }} />
       )}
-    </div>
+    </GlassRamme>
   );
 }
 
@@ -289,13 +292,13 @@ function Behandlerboks({ navn, aktiv, onClick, apne, totalt, varsler = 0 }: {
 }) {
   return (
     <button onClick={onClick}
-      className={`relative flex items-center gap-3 rounded-2xl p-4 text-left shadow-sm ring-1 transition hover:-translate-y-0.5 hover:shadow-md ${aktiv ? 'bg-ocab-600 text-white ring-ocab-600 shadow-ocab-900/20' : 'bg-white text-slate-900 ring-slate-200'}`}>
+      className={`glass relative flex items-center gap-3 rounded-2xl p-4 text-left transition hover:-translate-y-0.5 ${aktiv ? 'bg-linear-to-br! from-ocab-400/50 via-ocab-600/40 to-ocab-900/30 ring-1 ring-sky-300/40' : 'hover:bg-white/10'}`}>
       {navn === 'Alle'
-        ? <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${aktiv ? 'bg-white/20' : 'bg-ocab-100 text-ocab-700'}`}><Ikon navn="person" /></span>
+        ? <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ring-1 ${aktiv ? 'bg-white text-slate-900 ring-white' : 'bg-white/10 ring-white/15'}`}><Ikon navn="person" /></span>
         : <Initialer navn={navn} aktiv={aktiv} stor />}
       <div className="min-w-0">
         <div className="truncate font-semibold">{navn}</div>
-        <div className={`text-xs ${aktiv ? 'text-ocab-100' : 'text-slate-500'}`}>{apne} åpne · {totalt} totalt</div>
+        <div className={`text-xs ${aktiv ? 'text-white/80' : 'text-white/50'}`}>{apne} åpne · {totalt} totalt</div>
       </div>
       {varsler > 0 && (
         <span className="absolute right-3 top-3 rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white" title={`${varsler} varsler`}>
@@ -311,20 +314,20 @@ function Statusboks({ tittel, antall, prikk, aktiv, onClick }: {
 }) {
   return (
     <button onClick={onClick}
-      className={`flex items-center justify-between rounded-2xl bg-white px-4 py-3 text-left shadow-sm transition hover:shadow-md ${aktiv ? 'ring-2 ring-ocab-600' : 'ring-1 ring-slate-200'}`}>
-      <span className="flex items-center gap-2 text-sm font-medium text-slate-600">
+      className={`glass flex items-center justify-between rounded-2xl px-4 py-3 text-left transition hover:bg-white/10 ${aktiv ? 'ring-2 ring-sky-300/70' : ''}`}>
+      <span className="flex items-center gap-2 text-sm font-medium text-white/70">
         <span className={`h-2.5 w-2.5 rounded-full ${prikk}`} />{tittel}
       </span>
-      <span className="text-2xl font-semibold tabular-nums tracking-tight text-slate-900">{antall}</span>
+      <span className="text-2xl font-semibold tabular-nums tracking-tight">{antall}</span>
     </button>
   );
 }
 
 function Meny({ ikon, tittel, tekst, onClick }: { ikon: 'dokument' | 'last_ned' | 'last_opp'; tittel: string; tekst: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-ocab-50">
-      <Ikon navn={ikon} className="mt-0.5 h-4 w-4 text-ocab-600" />
-      <span><span className="block text-sm font-medium text-slate-900">{tittel}</span><span className="block text-xs text-slate-500">{tekst}</span></span>
+    <button onClick={onClick} className="flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-white/10">
+      <Ikon navn={ikon} className="mt-0.5 h-4 w-4 text-sky-300" />
+      <span><span className="block text-sm font-medium">{tittel}</span><span className="block text-xs text-white/50">{tekst}</span></span>
     </button>
   );
 }

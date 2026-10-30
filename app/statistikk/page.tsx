@@ -1,22 +1,24 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import GlassRamme, { GlassKort, SideTopp } from '../components/GlassRamme';
+import { GlassStolper } from '../components/GlassDiagrammer';
 import { Initialer } from '../components/Skjema';
 import Stolpediagram from '../components/Stolpediagram';
-import Topp from '../components/Topp';
-import { kroner, lastSaker, SAKSBEHANDLERE, STATUS_REKKEFOLGE, STATUSER, type Sak } from '@/lib/saker';
+import { DIAGRAM_REKKEFOLGE, kroner, lastSaker, SAKSBEHANDLERE, STATUSER, type Sak } from '@/lib/saker';
 import { lagStatistikk, sisteMaaneder, type Mva } from '@/lib/statistikk';
 
 type Periode = 6 | 12 | 24;
 
-const STATUS_SERIER = STATUS_REKKEFOLGE.map(s => ({ nokkel: s, navn: STATUSER[s].navn, farge: STATUSER[s].diagram }));
-const OCAB_BLA = '#006cb7';
+const STATUS_SERIER = DIAGRAM_REKKEFOLGE.map(s => ({ nokkel: s, navn: STATUSER[s].navn, farge: STATUSER[s].diagram }));
 
 // Hele kroner i oversikten – øre hører hjemme på tilbudet, ikke i statistikken.
 const kr = (belop: number) => kroner(Math.round(belop));
+const antall = (n: number) => String(n);
 
 export default function StatistikkSide() {
   const [saker, setSaker] = useState<Sak[]>([]);
+  const [lastet, setLastet] = useState(false);
   const [periode, setPeriode] = useState<Periode>(12);
   const [behandler, setBehandler] = useState('alle');
   const [mva, setMva] = useState<Mva>('eks');
@@ -26,6 +28,7 @@ export default function StatistikkSide() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSaker(lastSaker());
+    setLastet(true);
   }, []);
 
   const stat = useMemo(() => {
@@ -38,132 +41,134 @@ export default function StatistikkSide() {
   const maksOppdrag = Math.max(1, ...stat.perOppdrag.map(o => o.sum));
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      <Topp tittel="Statistikk"
+    <GlassRamme aktiv="statistikk">
+      <SideTopp tittel="Statistikk"
         undertittel={`${behandler === 'alle' ? 'Alle saksbehandlere' : behandler} · siste ${periode} måneder · beløp ${mvaTekst}`} />
 
-      <main className="relative mx-auto -mt-20 max-w-7xl space-y-6 px-4 pb-16 sm:px-6 lg:px-8">
-        {/* Filtre */}
-        <div className="flex flex-col gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap gap-1.5">
-            {['alle', ...SAKSBEHANDLERE].map(navn => (
-              <button key={navn} onClick={() => setBehandler(navn)}
-                className={`inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium transition ${behandler === navn ? 'bg-ocab-600 text-white' : 'text-slate-600 hover:bg-slate-100'}`}>
-                {navn === 'alle' ? 'Alle' : <><Initialer navn={navn} aktiv={behandler === navn} />{navn}</>}
-              </button>
-            ))}
+      {/* Filtre */}
+      <div className="glass glass-inn mt-6 flex flex-col gap-3 rounded-2xl p-2 lg:flex-row lg:items-center lg:justify-between" style={{ animationDelay: '60ms' }}>
+        <div className="flex flex-wrap gap-1">
+          {['alle', ...SAKSBEHANDLERE].map(navn => (
+            <button key={navn} onClick={() => setBehandler(navn)}
+              className={`inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium transition ${behandler === navn ? 'bg-ocab-500/40 text-white ring-1 ring-sky-300/50' : 'text-white/70 hover:bg-white/10'}`}>
+              {navn === 'alle' ? 'Alle' : <><Initialer navn={navn} aktiv={behandler === navn} />{navn}</>}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Bryter valg={[['eks', 'Eks. mva'], ['inkl', 'Inkl. mva']]} verdi={mva} onEndre={v => setMva(v as Mva)} />
+          <Bryter valg={[['6', '6 mnd'], ['12', '12 mnd'], ['24', '24 mnd']]} verdi={String(periode)} onEndre={v => setPeriode(Number(v) as Periode)} />
+        </div>
+      </div>
+
+      {lastet && (
+        <div className="space-y-4">
+          {/* ===== SAKER ===== */}
+          <Overskrift tittel="Saker" />
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <Nokkeltall tittel="Innkommende" verdi={n.antallNye} tekst={`saker siste ${periode} mnd`} />
+            <Nokkeltall tittel="Fullført" verdi={n.antallFerdige} tekst={`saker siste ${periode} mnd`} />
+            <Nokkeltall tittel="Åpne nå" verdi={n.antallApne} tekst="Ny eller pågående" />
+            <Nokkeltall tittel="Snitt løpetid" verdi={n.snittLopetid === null ? '–' : `${n.snittLopetid} d`}
+              tekst={n.snittLopetid === null ? 'ingen fullførte saker' : 'for fullførte saker'} />
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Bryter valg={[['eks', 'Eks. mva'], ['inkl', 'Inkl. mva']]} verdi={mva} onEndre={v => setMva(v as Mva)} />
-            <Bryter valg={[['6', '6 mnd'], ['12', '12 mnd'], ['24', '24 mnd']]} verdi={String(periode)} onEndre={v => setPeriode(Number(v) as Periode)} />
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <GlassKort tittel="Innkommende saker per måned" tekst="Antall nye saker etter opprettet-dato">
+              <GlassStolper punkter={stat.antall.innkommende} formater={antall} navn="Innkommende" />
+            </GlassKort>
+            <GlassKort tittel="Fullførte saker per måned" tekst="Saker satt til «Ferdig», etter dato de ble avsluttet">
+              <GlassStolper punkter={stat.antall.fullforte} formater={antall} navn="Fullført" />
+            </GlassKort>
           </div>
-        </div>
 
-        {/* ===== SAKER ===== */}
-        <Overskrift tittel="Saker" />
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Nokkeltall tittel="Innkommende" verdi={n.antallNye} tekst={`saker siste ${periode} mnd`} />
-          <Nokkeltall tittel="Fullført" verdi={n.antallFerdige} tekst={`saker siste ${periode} mnd`} />
-          <Nokkeltall tittel="Åpne nå" verdi={n.antallApne} tekst="Ny eller pågående" />
-          <Nokkeltall tittel="Snitt løpetid" verdi={n.snittLopetid ?? '–'} tekst={n.snittLopetid === null ? 'ingen fullførte saker' : 'dager for fullførte saker'} />
-        </div>
+          <GlassKort tittel="Alle statuser per måned" tekst="Sakene som kom inn hver måned, fordelt på status de har i dag">
+            <Stolpediagram hoyde={260} punkter={stat.antall.perStatus} serier={STATUS_SERIER} />
+          </GlassKort>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Kort tittel="Innkommende saker per måned" tekst="Antall nye saker etter opprettet-dato.">
-            <Stolpediagram punkter={stat.antall.innkommende} serier={[{ nokkel: 'verdi', navn: 'Innkommende', farge: OCAB_BLA }]} />
-          </Kort>
-          <Kort tittel="Fullførte saker per måned" tekst="Saker satt til «Ferdig», etter dato de ble avsluttet.">
-            <Stolpediagram punkter={stat.antall.fullforte} serier={[{ nokkel: 'verdi', navn: 'Fullført', farge: STATUSER.ferdig.diagram }]} />
-          </Kort>
-        </div>
+          {/* ===== ØKONOMI ===== */}
+          <Overskrift tittel="Økonomi" tekst={`Summen av pris og tilbud på sakene, ${mvaTekst}.`} />
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <Nokkeltall tittel="Fullført verdi" verdi={kr(n.verdiFerdige)} tekst={`${n.antallFerdige} fullførte saker`} uthevet />
+            <Nokkeltall tittel="Innkommende verdi" verdi={kr(n.verdiNye)} tekst={`${n.antallNye} nye saker`} />
+            <Nokkeltall tittel="Åpen verdi" verdi={kr(n.verdiApne)} tekst="Ny eller pågående nå" />
+            <Nokkeltall tittel="Snitt per fullført sak" verdi={n.snittFerdig === null ? '–' : kr(n.snittFerdig)} tekst={mvaTekst} />
+          </div>
 
-        <Kort tittel="Alle statuser per måned" tekst="Sakene som kom inn hver måned, fordelt på status de har i dag.">
-          <Stolpediagram hoyde={260} punkter={stat.antall.perStatus} serier={STATUS_SERIER} />
-        </Kort>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <GlassKort tittel="Fullført verdi per måned" tekst="Sum for saker satt til «Ferdig», etter avsluttet-dato">
+              <GlassStolper punkter={stat.verdi.fullforte} formater={kr} navn="Fullført" />
+            </GlassKort>
+            <GlassKort tittel="Innkommende verdi per måned" tekst="Sum for nye saker etter opprettet-dato">
+              <GlassStolper punkter={stat.verdi.innkommende} formater={kr} navn="Innkommende" />
+            </GlassKort>
+          </div>
 
-        {/* ===== ØKONOMI ===== */}
-        <Overskrift tittel="Økonomi" tekst={`Summen av pris og tilbud på sakene, ${mvaTekst}.`} />
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Nokkeltall tittel="Fullført verdi" verdi={kr(n.verdiFerdige)} tekst={`${n.antallFerdige} fullførte saker`} uthevet />
-          <Nokkeltall tittel="Innkommende verdi" verdi={kr(n.verdiNye)} tekst={`${n.antallNye} nye saker`} />
-          <Nokkeltall tittel="Åpen verdi" verdi={kr(n.verdiApne)} tekst="Ny eller pågående nå" />
-          <Nokkeltall tittel="Snitt per fullført sak" verdi={n.snittFerdig === null ? '–' : kr(n.snittFerdig)} tekst={mvaTekst} />
-        </div>
+          <GlassKort tittel="Verdi per status per måned" tekst="Sum for sakene som kom inn hver måned, fordelt på status de har i dag">
+            <Stolpediagram hoyde={260} punkter={stat.verdi.perStatus} serier={STATUS_SERIER} formater={kr} />
+          </GlassKort>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Kort tittel="Fullført verdi per måned" tekst="Sum for saker satt til «Ferdig», etter avsluttet-dato.">
-            <Stolpediagram punkter={stat.verdi.fullforte} formater={kr}
-              serier={[{ nokkel: 'verdi', navn: 'Fullført', farge: STATUSER.ferdig.diagram }]} />
-          </Kort>
-          <Kort tittel="Innkommende verdi per måned" tekst="Sum for nye saker etter opprettet-dato.">
-            <Stolpediagram punkter={stat.verdi.innkommende} formater={kr}
-              serier={[{ nokkel: 'verdi', navn: 'Innkommende', farge: OCAB_BLA }]} />
-          </Kort>
-        </div>
-
-        <Kort tittel="Verdi per status per måned" tekst="Sum for sakene som kom inn hver måned, fordelt på status de har i dag.">
-          <Stolpediagram hoyde={260} punkter={stat.verdi.perStatus} serier={STATUS_SERIER} formater={kr} />
-        </Kort>
-
-        <div className="grid gap-6 lg:grid-cols-5">
-          <Kort tittel="Per saksbehandler" tekst={`Siste ${periode} mnd, ${mvaTekst}. «Åpne» gjelder nå.`} className="lg:col-span-3">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
-                    <th className="py-2 pr-4 font-medium">Saksbehandler</th>
-                    <th className="py-2 pr-4 text-right font-medium">Nye</th>
-                    <th className="py-2 pr-4 text-right font-medium">Fullført</th>
-                    <th className="py-2 pr-4 text-right font-medium">Fullført verdi</th>
-                    <th className="py-2 pr-4 text-right font-medium">Åpne</th>
-                    <th className="py-2 text-right font-medium">Åpen verdi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stat.perBehandler.filter(b => behandler === 'alle' || b.navn === behandler).map(b => (
-                    <tr key={b.navn} className="border-b border-slate-100 tabular-nums">
-                      <td className="py-2.5 pr-4">
-                        <span className="flex items-center gap-2 font-medium text-slate-800"><Initialer navn={b.navn} />{b.navn}</span>
-                      </td>
-                      <td className="py-2.5 pr-4 text-right text-slate-700">{b.nye}</td>
-                      <td className="py-2.5 pr-4 text-right text-slate-700">{b.ferdige}</td>
-                      <td className="py-2.5 pr-4 text-right font-semibold text-slate-900">{kr(b.verdiFerdige)}</td>
-                      <td className="py-2.5 pr-4 text-right text-slate-700">{b.apne}</td>
-                      <td className="py-2.5 text-right text-slate-700">{kr(b.verdiApne)}</td>
+          <div className="grid gap-4 lg:grid-cols-5">
+            <GlassKort tittel="Per saksbehandler" tekst={`Siste ${periode} mnd, ${mvaTekst}. «Åpne» gjelder nå.`} className="lg:col-span-3">
+              <div className="-mx-2 overflow-x-auto">
+                <table className="w-full min-w-[560px] text-sm">
+                  <thead>
+                    <tr className="text-left text-[11px] uppercase tracking-wide text-white/45">
+                      <th className="px-2 pb-3 font-medium">Saksbehandler</th>
+                      <th className="px-2 pb-3 text-right font-medium">Nye</th>
+                      <th className="px-2 pb-3 text-right font-medium">Fullført</th>
+                      <th className="px-2 pb-3 text-right font-medium">Fullført verdi</th>
+                      <th className="px-2 pb-3 text-right font-medium">Åpne</th>
+                      <th className="px-2 pb-3 text-right font-medium">Åpen verdi</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Kort>
+                  </thead>
+                  <tbody>
+                    {stat.perBehandler.filter(b => behandler === 'alle' || b.navn === behandler).map(b => (
+                      <tr key={b.navn} className="border-t border-white/[0.07] tabular-nums transition hover:bg-white/[0.05]">
+                        <td className="px-2 py-3">
+                          <span className="flex items-center gap-2 font-medium"><Initialer navn={b.navn} />{b.navn}</span>
+                        </td>
+                        <td className="px-2 py-3 text-right text-white/75">{b.nye}</td>
+                        <td className="px-2 py-3 text-right text-white/75">{b.ferdige}</td>
+                        <td className="px-2 py-3 text-right font-semibold">{kr(b.verdiFerdige)}</td>
+                        <td className="px-2 py-3 text-right text-white/75">{b.apne}</td>
+                        <td className="px-2 py-3 text-right text-white/75">{kr(b.verdiApne)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </GlassKort>
 
-          <Kort tittel="Per oppdrag" tekst={`Nye saker siste ${periode} mnd, før rabatt, ${mvaTekst}.`} className="lg:col-span-2">
-            <ul className="space-y-4">
-              {stat.perOppdrag.map(o => (
-                <li key={o.type}>
-                  <div className="flex items-baseline justify-between gap-3 text-sm">
-                    <span className="font-medium text-slate-800">{o.navn}</span>
-                    <span className="tabular-nums text-slate-900"><span className="mr-2 text-xs text-slate-500">{o.saker} saker</span>{kr(o.sum)}</span>
-                  </div>
-                  <div className="mt-1.5 h-2 rounded-full bg-slate-100">
-                    <div className="h-2 rounded-full bg-ocab-600" style={{ width: `${(o.sum / maksOppdrag) * 100}%` }} />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </Kort>
+            <GlassKort tittel="Per oppdrag" tekst={`Nye saker siste ${periode} mnd, før rabatt, ${mvaTekst}`} className="lg:col-span-2">
+              <ul className="space-y-5">
+                {stat.perOppdrag.map(o => (
+                  <li key={o.type}>
+                    <div className="flex items-baseline justify-between gap-3 text-sm">
+                      <span className="text-white/85">{o.navn} <span className="text-xs text-white/45">· {o.saker} saker</span></span>
+                      <span className="font-semibold tabular-nums">{kr(o.sum)}</span>
+                    </div>
+                    <div className="mt-2 h-1.5 rounded-full bg-white/10">
+                      <div className="h-1.5 rounded-full bg-gradient-to-r from-ocab-500 to-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.5)] transition-all duration-700"
+                        style={{ width: `${(o.sum / maksOppdrag) * 100}%` }} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </GlassKort>
+          </div>
         </div>
-      </main>
-    </div>
+      )}
+    </GlassRamme>
   );
 }
 
 function Bryter({ valg, verdi, onEndre }: { valg: [string, string][]; verdi: string; onEndre: (v: string) => void }) {
   return (
-    <div className="flex gap-1 rounded-xl bg-slate-100 p-1">
+    <div className="flex gap-1 rounded-xl bg-white/[0.06] p-1 ring-1 ring-white/10">
       {valg.map(([v, navn]) => (
         <button key={v} onClick={() => onEndre(v)}
-          className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${verdi === v ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}>
+          className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${verdi === v ? 'bg-white text-slate-900 shadow-sm' : 'text-white/60 hover:text-white'}`}>
           {navn}
         </button>
       ))}
@@ -173,29 +178,20 @@ function Bryter({ valg, verdi, onEndre }: { valg: [string, string][]; verdi: str
 
 function Overskrift({ tittel, tekst }: { tittel: string; tekst?: string }) {
   return (
-    <div className="pt-4">
-      <h2 className="text-lg font-semibold tracking-tight text-slate-900">{tittel}</h2>
-      {tekst && <p className="text-sm text-slate-500">{tekst}</p>}
+    <div className="pt-6">
+      <h2 className="text-lg font-semibold tracking-tight">{tittel}</h2>
+      {tekst && <p className="text-sm text-white/55">{tekst}</p>}
     </div>
   );
 }
 
 function Nokkeltall({ tittel, verdi, tekst, uthevet = false }: { tittel: string; verdi: number | string; tekst: string; uthevet?: boolean }) {
   return (
-    <div className={`rounded-2xl p-5 shadow-sm ring-1 ${uthevet ? 'bg-ocab-600 text-white ring-ocab-600' : 'bg-white ring-slate-200'}`}>
-      <div className={`text-xs font-medium uppercase tracking-wide ${uthevet ? 'text-ocab-100' : 'text-slate-500'}`}>{tittel}</div>
-      <div className={`mt-2 text-2xl font-semibold tabular-nums tracking-tight sm:text-3xl ${uthevet ? '' : 'text-slate-900'}`}>{verdi}</div>
-      <div className={`mt-1 text-xs ${uthevet ? 'text-ocab-100' : 'text-slate-500'}`}>{tekst}</div>
+    <div className={`glass glass-inn relative overflow-hidden rounded-3xl p-5 transition duration-300 hover:-translate-y-1 ${uthevet ? 'bg-linear-to-br! from-ocab-400/45 via-ocab-600/35 to-ocab-900/30' : ''}`}>
+      {uthevet && <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-sky-300/30 blur-2xl" />}
+      <div className="relative text-xs font-medium text-white/70">{tittel}</div>
+      <div className="relative mt-3 text-2xl font-semibold tabular-nums tracking-tight sm:text-3xl">{verdi}</div>
+      <div className="relative mt-1 text-xs text-white/55">{tekst}</div>
     </div>
-  );
-}
-
-function Kort({ tittel, tekst, children, className = '' }: { tittel: string; tekst: string; children: React.ReactNode; className?: string }) {
-  return (
-    <section className={`rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:p-6 ${className}`}>
-      <h3 className="text-base font-semibold text-slate-900">{tittel}</h3>
-      <p className="mb-6 mt-0.5 text-sm text-slate-500">{tekst}</p>
-      {children}
-    </section>
   );
 }

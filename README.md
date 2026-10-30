@@ -34,7 +34,7 @@ app/
   oversikt/                Oversikt i glass-stil med teambildet i bakgrunnen
   statistikk/page.tsx      Statistikk og økonomi
   api/les-dokument/        Leser opplastede dokumenter og finner kundeinfo
-  components/              Saksboks, skjemaer, vinduer, diagram, ikoner
+  components/              Glass-ramme, saksboks, skjemaer, vinduer, grafer, ikoner
 lib/
   saker.ts                 Datamodell, statuser, varsler, priser, saksbehandlere, lagring
   statistikk.ts            Utregning av tall og summer til statistikksiden
@@ -48,7 +48,7 @@ tests/                     Tester for lib/
 - **Priser, roller og oppdrag:** `ROLLER` og `OPPDRAG` i `lib/saker.ts`.
 - **Saksbehandlere:** `SAKSBEHANDLERE` i `lib/saker.ts`.
 - **Når varsler slår inn (2, 15, 30 dager):** `VARSLER` i `lib/saker.ts`.
-- **Bakgrunnsbilde og logo på oversikten:** `public/team.jpg` og `public/ocab-logo-hvit.png`.
+- **Bakgrunnsbilde og logo (alle sider):** `public/team.jpg` og `public/ocab-logo-hvit.png`.
 - **Farger:** Ocab-blå ligger i `app/globals.css`, statusfarger i `STATUSER` i `lib/saker.ts`.
 
 ## Viktig om lagring

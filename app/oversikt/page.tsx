@@ -2,23 +2,15 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import GlassRamme, { GlassKort } from '../components/GlassRamme';
 import Ikon from '../components/Ikon';
-import { GlassLinjer, GlassMaler, GlassSmultring, GlassStolper } from './diagrammer';
+import { GlassLinjer, GlassMaler, GlassSmultring, GlassStolper } from '../components/GlassDiagrammer';
 import {
-  aktivtVarsel, beregnPris, dagerApen, erApen, kroner, lastSaker, SAKSBEHANDLERE, STATUSER, VALGT_BEHANDLER_NOKKEL,
-  type Sak, type Status,
+  aktivtVarsel, beregnPris, dagerApen, DIAGRAM_REKKEFOLGE, erApen, kroner, lastSaker, SAKSBEHANDLERE, STATUSER,
+  VALGT_BEHANDLER_NOKKEL, type Sak,
 } from '@/lib/saker';
 import { endring, lagOversikt } from '@/lib/statistikk';
-
-// Statusfarger for mørk bakgrunn – kontrollert for fargeblindhet i rekkefølgen Ny, Ferdig, Pågående, Ingen sak.
-const MORK: Record<Status, { farge: string; pille: string }> = {
-  ny: { farge: '#3b82f6', pille: 'bg-blue-500/20 text-blue-100 ring-blue-400/30' },
-  ferdig: { farge: '#059669', pille: 'bg-emerald-500/20 text-emerald-100 ring-emerald-400/30' },
-  pagaende: { farge: '#d97706', pille: 'bg-amber-500/20 text-amber-100 ring-amber-400/30' },
-  ingen_sak: { farge: '#e11d48', pille: 'bg-rose-500/20 text-rose-100 ring-rose-400/30' },
-};
-const SMULTRING_REKKEFOLGE: Status[] = ['ny', 'ferdig', 'pagaende', 'ingen_sak'];
 
 const hilsen = (time: number) => (time < 10 ? 'God morgen' : time < 17 ? 'God dag' : 'God kveld');
 const hel = (n: number) => kroner(Math.round(n));
@@ -52,41 +44,9 @@ export default function Oversikt() {
   const tid = new Date(na);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-950 text-white">
-      {/* Bakgrunn: teambildet, mørklagt, med Ocab-logoen svakt over */}
-      <div className="pointer-events-none fixed inset-0">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/team.jpg" alt="" className="h-full w-full scale-105 object-cover object-[50%_30%] blur-[2px]" />
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-950/80 via-slate-950/65 to-ocab-950/85" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(0,108,183,0.35),transparent_55%)]" />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/ocab-logo-hvit.png" alt="" className="absolute -bottom-[4vw] -right-[3vw] w-[70vw] max-w-[1100px] opacity-[0.06]" />
-      </div>
-
-      <div className="relative flex min-h-screen">
-        {/* Sidemeny */}
-        <aside className="glass sticky top-4 m-4 mr-0 hidden h-[calc(100vh-2rem)] w-[72px] shrink-0 flex-col items-center gap-2 rounded-3xl py-5 lg:flex">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/ocab-logo-hvit.png" alt="Ocab" className="mb-4 w-11" />
-          <Rail href="/oversikt" ikon="rutenett" navn="Oversikt" aktiv />
-          <Rail href="/" ikon="dokument" navn="Saker" />
-          <Rail href="/statistikk" ikon="diagram" navn="Statistikk" />
-          <div className="my-2 h-px w-8 bg-white/15" />
-          <Rail href="/?ny=kunde" ikon="pluss" navn="Legg til kunde" />
-          <Rail href="/?ny=dokument" ikon="last_opp" navn="Last opp dokument" />
-        </aside>
-
-        <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
+    <GlassRamme aktiv="oversikt">
           {/* Toppfelt */}
           <header className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-3 lg:hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/ocab-logo-hvit.png" alt="Ocab" className="w-16" />
-              <nav className="flex gap-1 text-sm">
-                <Link href="/" className="rounded-lg px-2.5 py-1.5 text-white/70 hover:bg-white/10">Saker</Link>
-                <Link href="/statistikk" className="rounded-lg px-2.5 py-1.5 text-white/70 hover:bg-white/10">Statistikk</Link>
-              </nav>
-            </div>
             <form className="glass order-last flex min-w-0 flex-1 basis-full items-center gap-2 rounded-2xl px-4 py-2.5 sm:order-none sm:basis-auto"
               onSubmit={e => { e.preventDefault(); router.push(`/?sok=${encodeURIComponent(sok)}`); }}>
               <Ikon navn="sok" className="h-4 w-4 text-white/50" />
@@ -137,25 +97,25 @@ export default function Oversikt() {
 
               {/* Hovedgrafer */}
               <section className="mt-4 grid gap-4 xl:grid-cols-3">
-                <Kort tittel="Fullført verdi per måned" tekst="Saker satt til «Ferdig», eks. mva" className="xl:col-span-2" forsinkelse={120}
+                <GlassKort tittel="Fullført verdi per måned" tekst="Saker satt til «Ferdig», eks. mva" className="xl:col-span-2" forsinkelse={120}
                   hoyre={<Link href="/statistikk" className="text-xs text-white/60 hover:text-white">Se statistikk →</Link>}>
-                  <GlassStolper punkter={o.stat.verdi.fullforte} formater={hel} />
-                </Kort>
-                <Kort tittel="Saker per status" tekst="Alle saker akkurat nå" forsinkelse={180}>
-                  <GlassSmultring biter={SMULTRING_REKKEFOLGE.map(s => ({ nokkel: s, navn: STATUSER[s].navn, verdi: o.statusFordeling[s], farge: MORK[s].farge }))} />
-                </Kort>
+                  <GlassStolper punkter={o.stat.verdi.fullforte} formater={hel} navn="Fullført" />
+                </GlassKort>
+                <GlassKort tittel="Saker per status" tekst="Alle saker akkurat nå" forsinkelse={180}>
+                  <GlassSmultring biter={DIAGRAM_REKKEFOLGE.map(s => ({ nokkel: s, navn: STATUSER[s].navn, verdi: o.statusFordeling[s], farge: STATUSER[s].diagram }))} />
+                </GlassKort>
               </section>
 
               <section className="mt-4 grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-                <Kort tittel="Innkommende og fullførte saker" tekst="Antall per måned, siste 12 mnd" className="lg:col-span-2 xl:col-span-1" forsinkelse={200}>
+                <GlassKort tittel="Innkommende og fullførte saker" tekst="Antall per måned, siste 12 mnd" className="lg:col-span-2 xl:col-span-1" forsinkelse={200}>
                   <GlassLinjer punkter={o.stat.antall.innkommende.map((p, i) => ({
                     ...p, verdier: { inn: p.verdier.verdi, ferdig: o.stat.antall.fullforte[i].verdier.verdi },
                   }))} linjer={[
                     { nokkel: 'inn', navn: 'Innkommende', farge: '#3b82f6' },
                     { nokkel: 'ferdig', navn: 'Fullført', farge: '#10b981' },
                   ]} />
-                </Kort>
-                <Kort tittel="Fullføringsgrad" tekst="Siste 12 måneder" forsinkelse={240}>
+                </GlassKort>
+                <GlassKort tittel="Fullføringsgrad" tekst="Siste 12 måneder" forsinkelse={240}>
                   <div className="pt-4">
                     <GlassMaler andel={o.fullforingsgrad}
                       tekst={o.antallAvsluttet ? `av ${o.antallAvsluttet} avsluttede saker endte som «Ferdig»` : 'Ingen avsluttede saker ennå'} />
@@ -164,54 +124,23 @@ export default function Oversikt() {
                     <Minitall tittel="Fullført denne mnd" verdi={o.ferdigeDenne} />
                     <Minitall tittel="Ingen sak totalt" verdi={o.statusFordeling.ingen_sak} />
                   </div>
-                </Kort>
-                <Kort tittel="Oppdrag" tekst="Nye saker siste 12 mnd, eks. mva" forsinkelse={280}>
+                </GlassKort>
+                <GlassKort tittel="Oppdrag" tekst="Nye saker siste 12 mnd, eks. mva" forsinkelse={280}>
                   <OppdragListe oppdrag={o.stat.perOppdrag} />
-                </Kort>
+                </GlassKort>
               </section>
 
               {/* Siste saker og teamet */}
               <section className="mt-4 grid gap-4 xl:grid-cols-3">
-                <Kort tittel="Siste saker" tekst={`${saker.length} saker totalt`} className="xl:col-span-2" forsinkelse={320}
+                <GlassKort tittel="Siste saker" tekst={`${saker.length} saker totalt`} className="xl:col-span-2" forsinkelse={320}
                   hoyre={<Link href="/" className="text-xs text-white/60 hover:text-white">Alle saker →</Link>}>
                   <SisteSaker saker={o.sisteSaker} na={na} />
-                </Kort>
+                </GlassKort>
                 <Team saker={saker} na={na} />
               </section>
             </>
           )}
-        </main>
-      </div>
-    </div>
-  );
-}
-
-function Rail({ href, ikon, navn, aktiv = false }: { href: string; ikon: Parameters<typeof Ikon>[0]['navn']; navn: string; aktiv?: boolean }) {
-  return (
-    <Link href={href} title={navn} aria-label={navn}
-      className={`group relative flex h-11 w-11 items-center justify-center rounded-2xl transition ${aktiv ? 'bg-white text-slate-900 shadow-lg' : 'text-white/60 hover:bg-white/10 hover:text-white'}`}>
-      <Ikon navn={ikon} className="h-5 w-5" />
-      <span className="pointer-events-none absolute left-full ml-3 whitespace-nowrap rounded-lg bg-slate-950/90 px-2.5 py-1 text-xs text-white opacity-0 ring-1 ring-white/10 transition group-hover:opacity-100">
-        {navn}
-      </span>
-    </Link>
-  );
-}
-
-function Kort({ tittel, tekst, children, className = '', hoyre, forsinkelse = 0 }: {
-  tittel: string; tekst?: string; children: ReactNode; className?: string; hoyre?: ReactNode; forsinkelse?: number;
-}) {
-  return (
-    <div className={`glass glass-inn rounded-3xl p-5 sm:p-6 ${className}`} style={{ animationDelay: `${forsinkelse}ms` }}>
-      <div className="mb-5 flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-sm font-semibold">{tittel}</h2>
-          {tekst && <p className="mt-0.5 text-xs text-white/50">{tekst}</p>}
-        </div>
-        {hoyre}
-      </div>
-      {children}
-    </div>
+    </GlassRamme>
   );
 }
 
@@ -314,8 +243,8 @@ function SisteSaker({ saker, na }: { saker: Sak[]; na: number }) {
                 </td>
                 <td className="px-2 py-3 text-white/75">{s.saksbehandler || '–'}</td>
                 <td className="px-2 py-3">
-                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ${MORK[s.status].pille}`}>
-                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: MORK[s.status].farge }} />{STATUSER[s.status].navn}
+                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ${STATUSER[s.status].pille}`}>
+                    <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: STATUSER[s.status].diagram }} />{STATUSER[s.status].navn}
                   </span>
                 </td>
                 <td className="px-2 py-3">

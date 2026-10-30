@@ -66,20 +66,20 @@ export default function NyKundeModal({ startMedOpplasting, saksbehandler, onLagr
         onDragLeave={() => setDrar(false)}
         onDrop={e => { e.preventDefault(); setDrar(false); const f = e.dataTransfer.files[0]; if (f) lesDokument(f); }}
         onClick={() => filInput.current?.click()}
-        className={`mb-6 flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-dashed px-5 py-4 transition ${drar ? 'border-ocab-600 bg-ocab-50' : 'border-slate-300 bg-white hover:border-ocab-400 hover:bg-ocab-50/40'}`}>
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ocab-600 text-white">
+        className={`mb-6 flex cursor-pointer items-center gap-4 rounded-2xl border-2 border-dashed px-5 py-4 transition ${drar ? 'border-sky-300 bg-ocab-500/20' : 'border-white/20 bg-white/[0.04] hover:border-sky-300/60 hover:bg-white/[0.07]'}`}>
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-ocab-400 to-ocab-600 text-white ring-1 ring-white/20">
           {leser ? <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <Ikon navn="last_opp" className="h-5 w-5" />}
         </div>
         <div className="text-sm">
-          <p className="font-medium text-slate-900">{leser ? 'Leser dokumentet…' : 'Last opp dokument'}</p>
-          <p className="text-slate-500">Dra hit eller klikk. PDF, Word (.docx), tekst eller e-post (.eml).</p>
+          <p className="font-medium text-white">{leser ? 'Leser dokumentet…' : 'Last opp dokument'}</p>
+          <p className="text-white/55">Dra hit eller klikk. PDF, Word (.docx), tekst eller e-post (.eml).</p>
         </div>
         <input ref={filInput} type="file" className="hidden" accept=".pdf,.docx,.txt,.eml,.htm,.html,.csv"
           onChange={e => { const f = e.target.files?.[0]; if (f) lesDokument(f); e.target.value = ''; }} />
       </div>
 
       {melding && (
-        <div className={`mb-5 rounded-xl px-4 py-3 text-sm ring-1 ${melding.type === 'ok' ? 'bg-emerald-50 text-emerald-900 ring-emerald-200' : 'bg-amber-50 text-amber-900 ring-amber-200'}`}>
+        <div className={`mb-5 rounded-xl px-4 py-3 text-sm ring-1 ${melding.type === 'ok' ? 'bg-emerald-400/15 text-emerald-100 ring-emerald-400/40' : 'bg-amber-400/15 text-amber-100 ring-amber-400/40'}`}>
           {melding.tekst}
         </div>
       )}

@@ -39,7 +39,9 @@ const Rutenett = ({ maks, hoyde }: { maks: number; hoyde: number }) => (
 );
 
 // Smale, avrundede glass-stolper. Siste måned (eller den man holder over) lyser opp.
-export function GlassStolper({ punkter, formater, hoyde = 230 }: { punkter: Punkt[]; formater: (n: number) => string; hoyde?: number }) {
+export function GlassStolper({ punkter, formater, navn, hoyde = 230 }: {
+  punkter: Punkt[]; formater: (n: number) => string; navn: string; hoyde?: number;
+}) {
   const [hover, setHover] = useState<number | null>(null);
   const maks = pentMaks(Math.max(0, ...punkter.map(p => p.verdier.verdi || 0)));
   const aktiv = hover ?? punkter.length - 1;
@@ -64,7 +66,7 @@ export function GlassStolper({ punkter, formater, hoyde = 230 }: { punkter: Punk
                   ? 'bg-gradient-to-t from-ocab-600 via-ocab-400 to-sky-300 shadow-[0_0_24px_rgba(56,189,248,0.55)]'
                   : 'bg-gradient-to-t from-white/[0.06] to-white/30 ring-1 ring-white/10'}`}
                   style={{ height: `max(${(verdi / maks) * 100}%, 4px)` }} />
-                {hover === i && <Tips tittel={p.tittel} rader={[['Fullført', formater(verdi)]]} side={i > punkter.length / 2 ? 'hoyre' : 'venstre'} />}
+                {hover === i && <Tips tittel={p.tittel} rader={[[navn, formater(verdi)]]} side={i > punkter.length / 2 ? 'hoyre' : 'venstre'} />}
               </div>
             );
           })}
