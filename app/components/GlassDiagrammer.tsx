@@ -18,7 +18,7 @@ const Tips = ({ tittel, rader, side }: { tittel: string; rader: [string, string,
     <div className="mb-1 font-semibold capitalize">{tittel}</div>
     {rader.map(([navn, verdi, farge]) => (
       <div key={navn} className="flex items-center justify-between gap-3 py-0.5">
-        <span className="flex items-center gap-1.5 text-white/60">
+        <span className="flex items-center gap-1.5 text-white/75">
           {farge && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: farge }} />}{navn}
         </span>
         <span className="font-semibold tabular-nums">{verdi}</span>
@@ -31,7 +31,7 @@ const Rutenett = ({ maks, hoyde }: { maks: number; hoyde: number }) => (
   <div className="pointer-events-none absolute inset-0" style={{ height: hoyde }}>
     {[0, 0.25, 0.5, 0.75, 1].map(f => (
       <div key={f} className="absolute inset-x-0 flex items-center gap-2" style={{ bottom: `${f * 100}%`, transform: 'translateY(50%)' }}>
-        <span className="w-9 shrink-0 text-right text-[10px] tabular-nums text-white/40">{kortTall(maks * f)}</span>
+        <span className="w-9 shrink-0 text-right text-[10px] tabular-nums text-white/55">{kortTall(maks * f)}</span>
         <span className={`h-px flex-1 ${f === 0 ? 'bg-white/20' : 'bg-white/[0.07]'}`} />
       </div>
     ))}
@@ -83,7 +83,7 @@ const kortMaaned = (etikett: string) => etikett.split(' ')[0];
 const Maanedsrad = ({ punkter, aktiv, innrykk = false }: { punkter: Punkt[]; aktiv: number | null; innrykk?: boolean }) => (
   <div className={`mt-2 flex ${innrykk ? 'pl-11' : ''}`}>
     {punkter.map((p, i) => (
-      <div key={p.tittel} className={`flex-1 text-center text-[10px] capitalize ${i === aktiv ? 'font-semibold text-white' : 'text-white/45'} ${i % 2 && i !== aktiv ? 'max-sm:invisible' : ''}`}>
+      <div key={p.tittel} className={`flex-1 text-center text-[10px] capitalize ${i === aktiv ? 'font-semibold text-white' : 'text-white/60'} ${i % 2 && i !== aktiv ? 'max-sm:invisible' : ''}`}>
         {kortMaaned(p.etikett)}
       </div>
     ))}
@@ -112,7 +112,7 @@ export function GlassLinjer({ punkter, linjer, hoyde = 210 }: { punkter: Punkt[]
     <div>
       <div className="mb-4 flex flex-wrap gap-4">
         {linjer.map(l => (
-          <span key={l.nokkel} className="flex items-center gap-2 text-xs text-white/70">
+          <span key={l.nokkel} className="flex items-center gap-2 text-xs text-white/80">
             <span className="h-0.5 w-4 rounded-full" style={{ backgroundColor: l.farge }} />{l.navn}
           </span>
         ))}
@@ -163,7 +163,7 @@ export function GlassLinjer({ punkter, linjer, hoyde = 210 }: { punkter: Punkt[]
           )}
         </div>
       </div>
-      <div className="mt-2 flex justify-between pl-11 text-[10px] capitalize text-white/45">
+      <div className="mt-2 flex justify-between pl-11 text-[10px] capitalize text-white/60">
         {punkter.map((p, i) => (
           <span key={p.tittel} className={`w-0 text-center ${i === hover ? 'font-semibold text-white' : ''} ${i % 2 && i !== hover ? 'max-sm:invisible' : ''}`}>
             <span className="inline-block -translate-x-1/2 whitespace-nowrap">{kortMaaned(p.etikett)}</span>
@@ -202,7 +202,7 @@ export function GlassSmultring({ biter, enhet = 'saker' }: { biter: Bit[]; enhet
         </svg>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
           <span className="text-3xl font-semibold tabular-nums">{valgt ? valgt.verdi : total}</span>
-          <span className="text-xs text-white/55">{valgt ? valgt.navn : enhet}</span>
+          <span className="text-xs text-white/70">{valgt ? valgt.navn : enhet}</span>
         </div>
       </div>
       <ul className="w-full space-y-2">
@@ -212,7 +212,7 @@ export function GlassSmultring({ biter, enhet = 'saker' }: { biter: Bit[]; enhet
             <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: b.farge }} />
             <span className="flex-1 text-white/80">{b.navn}</span>
             <span className="font-semibold tabular-nums">{b.verdi}</span>
-            <span className="w-10 text-right text-xs tabular-nums text-white/45">{total ? Math.round((b.verdi / total) * 100) : 0} %</span>
+            <span className="w-10 text-right text-xs tabular-nums text-white/60">{total ? Math.round((b.verdi / total) * 100) : 0} %</span>
           </li>
         ))}
       </ul>
@@ -251,7 +251,7 @@ export function GlassMaler({ andel, tekst }: { andel: number | null; tekst: stri
           <div className="text-4xl font-semibold tabular-nums tracking-tight">{andel === null ? '–' : `${Math.round(verdi * 100)} %`}</div>
         </div>
       </div>
-      <p className="mt-2 max-w-[16rem] text-center text-xs text-white/55">{tekst}</p>
+      <p className="mt-2 max-w-[16rem] text-center text-xs text-white/70">{tekst}</p>
     </div>
   );
 }

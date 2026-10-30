@@ -7,14 +7,14 @@ import Ikon from './Ikon';
 import { SAKSBEHANDLERE, type Kundefelter } from '@/lib/saker';
 
 export const inputStil =
-  'w-full rounded-xl border-0 bg-white/[0.06] px-3 py-2.5 text-sm text-white ring-1 ring-white/15 [color-scheme:dark] placeholder:text-white/35 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-ocab-400 [&_option]:bg-slate-900 [&_option]:text-white';
+  'w-full rounded-xl border-0 bg-white/[0.06] px-3 py-2.5 text-sm text-white ring-1 ring-white/15 [color-scheme:dark] placeholder:text-white/50 focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-ocab-400 [&_option]:bg-slate-900 [&_option]:text-white';
 
 const fremhevetStil = inputStil.replace('bg-white/[0.06]', 'bg-emerald-400/15').replace('ring-white/15', 'ring-emerald-400/50');
 
 export function Felt({ etikett, children, className = '' }: { etikett: string; children: ReactNode; className?: string }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-white/50">{etikett}</span>
+      <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-white/65">{etikett}</span>
       {children}
     </label>
   );
@@ -58,9 +58,9 @@ export function Modal({ tittel, undertittel, onLukk, children, bunn, bred = fals
         <div className="flex items-start justify-between gap-4 border-b border-white/10 px-6 py-4">
           <div className="min-w-0">
             <h2 className="truncate text-lg font-semibold tracking-tight">{tittel}</h2>
-            {undertittel && <p className="mt-0.5 text-sm text-white/55">{undertittel}</p>}
+            {undertittel && <p className="mt-0.5 text-sm text-white/70">{undertittel}</p>}
           </div>
-          <button onClick={onLukk} className="rounded-lg p-1.5 text-white/50 hover:bg-white/10 hover:text-white" title="Lukk">
+          <button onClick={onLukk} className="rounded-lg p-1.5 text-white/65 hover:bg-white/10 hover:text-white" title="Lukk">
             <Ikon navn="lukk" className="h-5 w-5" />
           </button>
         </div>

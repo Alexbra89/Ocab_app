@@ -19,7 +19,7 @@ export default function Velger<T extends string>({ verdi, valg, onEndre, knappSt
   const valgt = valg.find(v => v.verdi === verdi);
 
   return (
-    <div ref={ref} className="relative shrink-0">
+    <div ref={ref} className="relative shrink-0" data-apen={apen || undefined}>
       <button onClick={() => setApen(!apen)}
         className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 transition hover:brightness-125 ${knappStil}`}>
         {valgt?.merke}
@@ -27,7 +27,7 @@ export default function Velger<T extends string>({ verdi, valg, onEndre, knappSt
         <Ikon navn="pil_ned" className="h-3 w-3 opacity-60" />
       </button>
       {apen && (
-        <div className="absolute right-0 z-30 mt-1.5 w-44 overflow-hidden rounded-xl bg-slate-900/95 p-1 shadow-2xl ring-1 ring-white/15 backdrop-blur-xl">
+        <div className="absolute right-0 z-30 mt-1.5 w-44 overflow-hidden rounded-xl bg-slate-900 p-1 shadow-2xl ring-1 ring-white/20">
           {valg.map(v => (
             <button key={v.verdi} onClick={() => { onEndre(v.verdi); setApen(false); }}
               className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-white/85 hover:bg-white/10">

@@ -42,7 +42,7 @@ export default function SakModal({ sak, na, onLagre, onSlett, onTilbud, onLukk }
       <div className="relative">
         <input type="number" min={0} value={(utkast.pris[felt] as number) || ''} placeholder="0"
           onChange={e => endrePris({ [felt]: Number(e.target.value) || 0 })} className={`${inputStil} ${enhet ? 'pr-12' : ''}`} />
-        {enhet && <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/40">{enhet}</span>}
+        {enhet && <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/55">{enhet}</span>}
       </div>
     </Felt>
   );
@@ -64,7 +64,7 @@ export default function SakModal({ sak, na, onLagre, onSlett, onTilbud, onLukk }
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {STATUS_REKKEFOLGE.map(s => (
                 <button key={s} onClick={() => endre({ status: s })}
-                  className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium ring-1 transition ${utkast.status === s ? `${STATUSER[s].pille} ring-2` : 'bg-white/[0.06] text-white/70 ring-white/15 hover:bg-white/10'}`}>
+                  className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium ring-1 transition ${utkast.status === s ? `${STATUSER[s].pille} ring-2` : 'bg-white/[0.06] text-white/80 ring-white/15 hover:bg-white/10'}`}>
                   <span className={`h-2 w-2 rounded-full ${STATUSER[s].prikk}`} />{STATUSER[s].navn}
                 </button>
               ))}
@@ -106,7 +106,7 @@ export default function SakModal({ sak, na, onLagre, onSlett, onTilbud, onLukk }
               <OppdragVelger valgte={valgteOppdrag} onVeksle={vekslOppdrag} />
             </div>
             {utkast.pris.oppdrag.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-white/20 px-4 py-3 text-sm text-white/55">
+              <p className="rounded-xl border border-dashed border-white/20 px-4 py-3 text-sm text-white/70">
                 Ingen oppdrag valgt. Velg Befaring, Sikring, Bekjempelse eller Serviceavtale – kunden kan ha flere.
               </p>
             ) : (
@@ -133,18 +133,18 @@ export default function SakModal({ sak, na, onLagre, onSlett, onTilbud, onLukk }
                         <div className="relative">
                           <input type="number" min={0} step="0.01" value={o.pris || ''} placeholder="Fyll inn" className={`${inputStil} pr-9`}
                             onChange={e => endreOppdrag(o.id, { pris: Number(e.target.value) || 0 })} />
-                          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/40">kr</span>
+                          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/55">kr</span>
                         </div>
                       </Felt>
                       <Sumboks etikett="Sum" belop={o.antall * o.pris} />
                       <button onClick={() => vekslOppdrag(o.type)} title={`Fjern ${typ.navn.toLowerCase()}`}
-                        className="mb-1.5 justify-self-end rounded-lg p-2 text-white/45 hover:bg-rose-500/15 hover:text-rose-300">
+                        className="mb-1.5 justify-self-end rounded-lg p-2 text-white/60 hover:bg-rose-500/15 hover:text-rose-300">
                         <Ikon navn="slett" />
                       </button>
                     </div>
                   );
                 })}
-                <div className="flex justify-end pr-1 text-sm text-white/60">
+                <div className="flex justify-end pr-1 text-sm text-white/75">
                   Sum oppdrag:&nbsp;<span className="font-semibold tabular-nums text-white">{kroner(pris.oppdragSum)}</span>
                 </div>
               </div>
@@ -190,7 +190,7 @@ export default function SakModal({ sak, na, onLagre, onSlett, onTilbud, onLukk }
             <ul className="mt-4 space-y-2">
               {utkast.notater.map(n => (
                 <li key={n.id} className="group rounded-xl bg-white/[0.05] px-3 py-2.5 text-sm ring-1 ring-white/10">
-                  <div className="flex items-center justify-between text-xs text-white/45">
+                  <div className="flex items-center justify-between text-xs text-white/60">
                     {tidspunkt(n.tidspunkt)}
                     <button onClick={() => endre({ notater: utkast.notater.filter(x => x.id !== n.id) })}
                       className="opacity-0 transition hover:text-rose-300 group-hover:opacity-100" title="Slett notat">
@@ -200,7 +200,7 @@ export default function SakModal({ sak, na, onLagre, onSlett, onTilbud, onLukk }
                   <p className="mt-1 whitespace-pre-wrap text-white/85">{n.tekst}</p>
                 </li>
               ))}
-              {utkast.notater.length === 0 && <li className="text-sm text-white/40">Ingen notater ennå.</li>}
+              {utkast.notater.length === 0 && <li className="text-sm text-white/55">Ingen notater ennå.</li>}
             </ul>
           </Seksjon>
 
@@ -210,10 +210,10 @@ export default function SakModal({ sak, na, onLagre, onSlett, onTilbud, onLukk }
                 <li key={a.id} className="text-sm">
                   <span className="absolute -left-[3px] mt-1.5 h-1.5 w-1.5 rounded-full bg-sky-300" />
                   <p className="text-white/85">{a.tekst}</p>
-                  <p className="text-xs text-white/40">{tidspunkt(a.tidspunkt)}</p>
+                  <p className="text-xs text-white/55">{tidspunkt(a.tidspunkt)}</p>
                 </li>
               ))}
-              {utkast.aktiviteter.length === 0 && <li className="text-sm text-white/40">Ingen aktivitet registrert.</li>}
+              {utkast.aktiviteter.length === 0 && <li className="text-sm text-white/55">Ingen aktivitet registrert.</li>}
             </ol>
           </Seksjon>
         </div>
@@ -238,7 +238,7 @@ function Undertittel({ children, className = '' }: { children: React.ReactNode; 
 function Sumboks({ etikett, belop }: { etikett: string; belop: number }) {
   return (
     <div>
-      <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-white/50">{etikett}</span>
+      <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-white/65">{etikett}</span>
       <div className="rounded-xl bg-ocab-500/20 px-3 py-2.5 text-right text-sm font-semibold tabular-nums text-white ring-1 ring-ocab-300/30">
         {kroner(belop)}
       </div>
@@ -248,7 +248,7 @@ function Sumboks({ etikett, belop }: { etikett: string; belop: number }) {
 
 function Sumlinje({ navn, belop, sterk = false }: { navn: string; belop: number; sterk?: boolean }) {
   return (
-    <div className={`flex justify-between ${sterk ? 'font-semibold text-white' : 'text-white/65'} ${belop === 0 && !sterk ? 'opacity-50' : ''}`}>
+    <div className={`flex justify-between ${sterk ? 'font-semibold text-white' : 'text-white/80'} ${belop === 0 && !sterk ? 'opacity-50' : ''}`}>
       <dt>{navn}</dt><dd className="tabular-nums">{kroner(belop)}</dd>
     </div>
   );
@@ -268,7 +268,7 @@ function OppdragVelger({ valgte, onVeksle }: { valgte: OppdragType[]; onVeksle: 
         <Ikon navn="pil_ned" className="h-3 w-3 opacity-60" />
       </button>
       {apen && (
-        <div className="absolute right-0 z-30 mt-1.5 w-56 rounded-xl bg-slate-900/95 p-1 shadow-2xl ring-1 ring-white/15 backdrop-blur-xl">
+        <div className="absolute right-0 z-30 mt-1.5 w-56 rounded-xl bg-slate-900 p-1 shadow-2xl ring-1 ring-white/20">
           {OPPDRAG_REKKEFOLGE.map(t => {
             const valgt = valgte.includes(t);
             return (
@@ -278,7 +278,7 @@ function OppdragVelger({ valgte, onVeksle }: { valgte: OppdragType[]; onVeksle: 
                   {valgt && <Ikon navn="hake" className="h-3 w-3" />}
                 </span>
                 <span className="flex-1">{OPPDRAG[t].navn}</span>
-                <span className="text-xs text-white/40">
+                <span className="text-xs text-white/55">
                   {OPPDRAG[t].varianter[0].pris ? kroner(OPPDRAG[t].varianter[0].pris) : 'etter avtale'}
                 </span>
               </button>

@@ -147,7 +147,7 @@ export default function Hjem() {
             </Knapp>
             {visEksport && (<>
               <div className="fixed inset-0 z-30" onClick={() => setVisEksport(false)} />
-              <div className="absolute right-0 z-40 mt-2 w-64 rounded-2xl bg-slate-900/95 p-1.5 text-white shadow-2xl ring-1 ring-white/15 backdrop-blur-xl">
+              <div className="absolute right-0 z-40 mt-2 w-64 rounded-2xl bg-slate-900 p-1.5 text-white shadow-2xl ring-1 ring-white/20">
                 <Meny ikon="dokument" tittel="Excel (.csv)" tekst={`${synlige.length} saker i visningen`}
                   onClick={() => { eksporterExcel(synlige); setVisEksport(false); }} />
                 <Meny ikon="last_ned" tittel="Sikkerhetskopi (.json)" tekst="Alle saker og innstillinger"
@@ -215,24 +215,24 @@ export default function Hjem() {
         {/* ===== SØK, SORTERING OG VARSLER ===== */}
         <div className="glass-inn mt-6 flex flex-col gap-3 sm:flex-row sm:items-center" style={{ animationDelay: '180ms' }}>
           <div className="glass relative flex-1 rounded-2xl">
-            <Ikon navn="sok" className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
+            <Ikon navn="sok" className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/65" />
             <input value={sok} onChange={e => setSok(e.target.value)} placeholder="Søk på navn, adresse eller saksnummer…"
-              className="w-full rounded-2xl border-0 bg-transparent py-3 pl-11 pr-10 text-sm text-white placeholder:text-white/45 focus:outline-none focus:ring-2 focus:ring-ocab-400" />
+              className="w-full rounded-2xl border-0 bg-transparent py-3 pl-11 pr-10 text-sm text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-ocab-400" />
             {sok && (
-              <button onClick={() => setSok('')} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-white/50 hover:text-white">
+              <button onClick={() => setSok('')} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-white/65 hover:text-white">
                 <Ikon navn="lukk" />
               </button>
             )}
           </div>
           <div className="flex gap-2">
             <label className="glass relative rounded-2xl">
-              <Ikon navn="sorter" className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
+              <Ikon navn="sorter" className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/65" />
               <select value={sortering} onChange={e => setSortering(e.target.value as Sortering)}
                 className="appearance-none rounded-2xl border-0 bg-transparent py-3 pl-10 pr-9 text-sm font-medium text-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-ocab-400 [&_option]:bg-slate-900">
                 <option value="nyeste">Dato: nyeste først</option>
                 <option value="eldste">Dato: eldste først</option>
               </select>
-              <Ikon navn="pil_ned" className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/50" />
+              <Ikon navn="pil_ned" className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/65" />
             </label>
             <button onClick={() => setFilter(filter === 'varsler' ? 'alle' : 'varsler')}
               className={`relative inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium shadow-sm ring-1 transition ${filter === 'varsler' ? 'bg-white text-slate-900 ring-white' : 'glass text-white hover:bg-white/10'}`}>
@@ -267,7 +267,7 @@ export default function Hjem() {
             <h2 className="mt-4 text-lg font-semibold">
               {behandlersSaker.length ? 'Ingen saker passer søket' : behandler === ALLE ? 'Ingen saker ennå' : `${behandlerNavn} har ingen saker`}
             </h2>
-            <p className="mt-1 max-w-sm text-sm text-white/55">
+            <p className="mt-1 max-w-sm text-sm text-white/70">
               {behandlersSaker.length ? 'Prøv et annet søk eller fjern filteret.' : 'Legg til en kunde, eller last opp et dokument så fylles informasjonen ut for deg.'}
             </p>
             {!behandlersSaker.length && (
@@ -320,7 +320,7 @@ function Behandlerboks({ navn, aktiv, onClick, apne, totalt, varsler = 0 }: {
         : <Initialer navn={navn} aktiv={aktiv} stor />}
       <div className="min-w-0">
         <div className="truncate font-semibold">{navn}</div>
-        <div className={`text-xs ${aktiv ? 'text-white/80' : 'text-white/50'}`}>{apne} åpne · {totalt} totalt</div>
+        <div className={`text-xs ${aktiv ? 'text-white/80' : 'text-white/65'}`}>{apne} åpne · {totalt} totalt</div>
       </div>
       {varsler > 0 && (
         <span className="absolute right-3 top-3 rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white" title={`${varsler} varsler`}>
@@ -337,7 +337,7 @@ function Statusboks({ tittel, antall, prikk, aktiv, onClick }: {
   return (
     <button onClick={onClick}
       className={`glass flex items-center justify-between rounded-2xl px-4 py-3 text-left transition hover:bg-white/10 ${aktiv ? 'ring-2 ring-sky-300/70' : ''}`}>
-      <span className="flex items-center gap-2 text-sm font-medium text-white/70">
+      <span className="flex items-center gap-2 text-sm font-medium text-white/80">
         <span className={`h-2.5 w-2.5 rounded-full ${prikk}`} />{tittel}
       </span>
       <span className="text-2xl font-semibold tabular-nums tracking-tight">{antall}</span>
@@ -349,7 +349,7 @@ function Meny({ ikon, tittel, tekst, onClick }: { ikon: 'dokument' | 'last_ned' 
   return (
     <button onClick={onClick} className="flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left hover:bg-white/10">
       <Ikon navn={ikon} className="mt-0.5 h-4 w-4 text-sky-300" />
-      <span><span className="block text-sm font-medium">{tittel}</span><span className="block text-xs text-white/50">{tekst}</span></span>
+      <span><span className="block text-sm font-medium">{tittel}</span><span className="block text-xs text-white/65">{tekst}</span></span>
     </button>
   );
 }

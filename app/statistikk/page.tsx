@@ -50,7 +50,7 @@ export default function StatistikkSide() {
         <div className="flex flex-wrap gap-1">
           {['alle', ...SAKSBEHANDLERE].map(navn => (
             <button key={navn} onClick={() => setBehandler(navn)}
-              className={`inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium transition ${behandler === navn ? 'bg-ocab-500/40 text-white ring-1 ring-sky-300/50' : 'text-white/70 hover:bg-white/10'}`}>
+              className={`inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium transition ${behandler === navn ? 'bg-ocab-500/40 text-white ring-1 ring-sky-300/50' : 'text-white/80 hover:bg-white/10'}`}>
               {navn === 'alle' ? 'Alle' : <><Initialer navn={navn} aktiv={behandler === navn} />{navn}</>}
             </button>
           ))}
@@ -113,7 +113,7 @@ export default function StatistikkSide() {
               <div className="-mx-2 overflow-x-auto">
                 <table className="w-full min-w-[560px] text-sm">
                   <thead>
-                    <tr className="text-left text-[11px] uppercase tracking-wide text-white/45">
+                    <tr className="text-left text-[11px] uppercase tracking-wide text-white/60">
                       <th className="px-2 pb-3 font-medium">Saksbehandler</th>
                       <th className="px-2 pb-3 text-right font-medium">Nye</th>
                       <th className="px-2 pb-3 text-right font-medium">Fullført</th>
@@ -145,7 +145,7 @@ export default function StatistikkSide() {
                 {stat.perOppdrag.map(o => (
                   <li key={o.type}>
                     <div className="flex items-baseline justify-between gap-3 text-sm">
-                      <span className="text-white/85">{o.navn} <span className="text-xs text-white/45">· {o.saker} saker</span></span>
+                      <span className="text-white/85">{o.navn} <span className="text-xs text-white/60">· {o.saker} saker</span></span>
                       <span className="font-semibold tabular-nums">{kr(o.sum)}</span>
                     </div>
                     <div className="mt-2 h-1.5 rounded-full bg-white/10">
@@ -168,7 +168,7 @@ function Bryter({ valg, verdi, onEndre }: { valg: [string, string][]; verdi: str
     <div className="flex gap-1 rounded-xl bg-white/[0.06] p-1 ring-1 ring-white/10">
       {valg.map(([v, navn]) => (
         <button key={v} onClick={() => onEndre(v)}
-          className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${verdi === v ? 'bg-white text-slate-900 shadow-sm' : 'text-white/60 hover:text-white'}`}>
+          className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${verdi === v ? 'bg-white text-slate-900 shadow-sm' : 'text-white/75 hover:text-white'}`}>
           {navn}
         </button>
       ))}
@@ -180,7 +180,7 @@ function Overskrift({ tittel, tekst }: { tittel: string; tekst?: string }) {
   return (
     <div className="pt-6">
       <h2 className="text-lg font-semibold tracking-tight">{tittel}</h2>
-      {tekst && <p className="text-sm text-white/55">{tekst}</p>}
+      {tekst && <p className="text-sm text-white/70">{tekst}</p>}
     </div>
   );
 }
@@ -189,9 +189,9 @@ function Nokkeltall({ tittel, verdi, tekst, uthevet = false }: { tittel: string;
   return (
     <div className={`glass glass-inn relative overflow-hidden rounded-3xl p-5 transition duration-300 hover:-translate-y-1 ${uthevet ? 'bg-linear-to-br! from-ocab-400/45 via-ocab-600/35 to-ocab-900/30' : ''}`}>
       {uthevet && <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-sky-300/30 blur-2xl" />}
-      <div className="relative text-xs font-medium text-white/70">{tittel}</div>
+      <div className="relative text-xs font-medium text-white/80">{tittel}</div>
       <div className="relative mt-3 text-2xl font-semibold tabular-nums tracking-tight sm:text-3xl">{verdi}</div>
-      <div className="relative mt-1 text-xs text-white/55">{tekst}</div>
+      <div className="relative mt-1 text-xs text-white/70">{tekst}</div>
     </div>
   );
 }

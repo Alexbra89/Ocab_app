@@ -72,7 +72,7 @@ export default function NyKundeModal({ startMedOpplasting, saksbehandler, onLagr
         </div>
         <div className="text-sm">
           <p className="font-medium text-white">{leser ? 'Leser dokumentet…' : 'Last opp dokument'}</p>
-          <p className="text-white/55">Dra hit eller klikk. PDF, Word (.docx), tekst eller e-post (.eml).</p>
+          <p className="text-white/70">Dra hit eller klikk. PDF, Word (.docx), tekst eller e-post (.eml).</p>
         </div>
         <input ref={filInput} type="file" className="hidden" accept=".pdf,.docx,.txt,.eml,.htm,.html,.csv"
           onChange={e => { const f = e.target.files?.[0]; if (f) lesDokument(f); e.target.value = ''; }} />

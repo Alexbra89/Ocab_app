@@ -49,15 +49,15 @@ export default function Oversikt() {
           <header className="flex flex-wrap items-center gap-3">
             <form className="glass order-last flex min-w-0 flex-1 basis-full items-center gap-2 rounded-2xl px-4 py-2.5 sm:order-none sm:basis-auto"
               onSubmit={e => { e.preventDefault(); router.push(`/?sok=${encodeURIComponent(sok)}`); }}>
-              <Ikon navn="sok" className="h-4 w-4 text-white/50" />
+              <Ikon navn="sok" className="h-4 w-4 text-white/65" />
               <input value={sok} onChange={e => setSok(e.target.value)} placeholder="Søk på kunde, adresse eller saksnummer…"
-                className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-white/45 focus:outline-none" />
-              <kbd className="hidden rounded-md bg-white/10 px-1.5 py-0.5 text-[10px] text-white/50 sm:block">Enter</kbd>
+                className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder:text-white/60 focus:outline-none" />
+              <kbd className="hidden rounded-md bg-white/10 px-1.5 py-0.5 text-[10px] text-white/65 sm:block">Enter</kbd>
             </form>
             {/* Klokke og dato tegnes først i nettleseren, så de ikke avviker fra serverens versjon */}
             <div className="glass ml-auto min-w-[88px] rounded-2xl px-3.5 py-2 text-right text-xs leading-tight sm:ml-0">
               <div className="font-semibold tabular-nums">{lastet ? tid.toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' }) : '–'}</div>
-              <div className="capitalize text-white/55">{lastet ? tid.toLocaleDateString('nb-NO', { weekday: 'short', day: 'numeric', month: 'short' }) : '\u00a0'}</div>
+              <div className="capitalize text-white/70">{lastet ? tid.toLocaleDateString('nb-NO', { weekday: 'short', day: 'numeric', month: 'short' }) : '\u00a0'}</div>
             </div>
             <Link href="/?ny=kunde"
               className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-b from-ocab-400 to-ocab-600 px-4 py-2.5 text-sm font-semibold shadow-[0_8px_24px_-6px_rgba(0,108,183,0.8)] ring-1 ring-white/20 transition hover:brightness-110">
@@ -71,7 +71,7 @@ export default function Oversikt() {
               <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
                 {lastet ? hilsen(tid.getHours()) : 'Hei'}, {navn || 'Ocab-teamet'} <span className="inline-block origin-[70%_70%] animate-[wave_2s_ease-in-out_1]">👋</span>
               </h1>
-              <p className="mt-1.5 text-white/60">{lastet ? `Dette skjer i sakene dine i ${tid.toLocaleDateString('nb-NO', { month: 'long' })}.` : '\u00a0'}</p>
+              <p className="mt-1.5 text-white/75">{lastet ? `Dette skjer i sakene dine i ${tid.toLocaleDateString('nb-NO', { month: 'long' })}.` : '\u00a0'}</p>
             </div>
             {kritiske > 0 && (
               <Link href="/" className="inline-flex items-center gap-2 rounded-full bg-red-500/20 px-3.5 py-1.5 text-sm font-medium text-red-100 ring-1 ring-red-400/40 hover:bg-red-500/30">
@@ -98,7 +98,7 @@ export default function Oversikt() {
               {/* Hovedgrafer */}
               <section className="mt-4 grid gap-4 xl:grid-cols-3">
                 <GlassKort tittel="Fullført verdi per måned" tekst="Saker satt til «Ferdig», eks. mva" className="xl:col-span-2" forsinkelse={120}
-                  hoyre={<Link href="/statistikk" className="text-xs text-white/60 hover:text-white">Se statistikk →</Link>}>
+                  hoyre={<Link href="/statistikk" className="text-xs text-white/75 hover:text-white">Se statistikk →</Link>}>
                   <GlassStolper punkter={o.stat.verdi.fullforte} formater={hel} navn="Fullført" />
                 </GlassKort>
                 <GlassKort tittel="Saker per status" tekst="Alle saker akkurat nå" forsinkelse={180}>
@@ -133,7 +133,7 @@ export default function Oversikt() {
               {/* Siste saker og teamet */}
               <section className="mt-4 grid gap-4 xl:grid-cols-3">
                 <GlassKort tittel="Siste saker" tekst={`${saker.length} saker totalt`} className="xl:col-span-2" forsinkelse={320}
-                  hoyre={<Link href="/" className="text-xs text-white/60 hover:text-white">Alle saker →</Link>}>
+                  hoyre={<Link href="/" className="text-xs text-white/75 hover:text-white">Alle saker →</Link>}>
                   <SisteSaker saker={o.sisteSaker} na={na} />
                 </GlassKort>
                 <Team saker={saker} na={na} />
@@ -152,8 +152,8 @@ function Nokkeltall({ tittel, verdi, tekst, endring, uthevet = false, forsinkels
       className={`glass glass-inn group relative overflow-hidden rounded-3xl p-5 transition duration-300 hover:-translate-y-1 ${uthevet ? 'bg-linear-to-br! from-ocab-400/45 via-ocab-600/35 to-ocab-900/30' : ''}`}>
       {uthevet && <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-sky-300/30 blur-2xl" />}
       <div className="relative flex items-center justify-between">
-        <span className="text-xs font-medium text-white/70">{tittel}</span>
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white/70 ring-1 ring-white/15 transition group-hover:bg-white group-hover:text-slate-900">
+        <span className="text-xs font-medium text-white/80">{tittel}</span>
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white/80 ring-1 ring-white/15 transition group-hover:bg-white group-hover:text-slate-900">
           <Ikon navn="pil_hoyre" className="h-3.5 w-3.5 -rotate-45" />
         </span>
       </div>
@@ -166,7 +166,7 @@ function Nokkeltall({ tittel, verdi, tekst, endring, uthevet = false, forsinkels
           </span>
         )}
       </div>
-      <p className="relative mt-1 text-xs text-white/55">{tekst}{endring !== undefined && endring !== null ? ' · mot forrige mnd' : ''}</p>
+      <p className="relative mt-1 text-xs text-white/70">{tekst}{endring !== undefined && endring !== null ? ' · mot forrige mnd' : ''}</p>
     </div>
   );
 }
@@ -174,7 +174,7 @@ function Nokkeltall({ tittel, verdi, tekst, endring, uthevet = false, forsinkels
 function Minitall({ tittel, verdi }: { tittel: string; verdi: number }) {
   return (
     <div className="rounded-2xl bg-white/[0.05] px-4 py-3 ring-1 ring-white/10">
-      <div className="text-[11px] text-white/50">{tittel}</div>
+      <div className="text-[11px] text-white/65">{tittel}</div>
       <div className="mt-0.5 text-xl font-semibold tabular-nums">{verdi}</div>
     </div>
   );
@@ -187,7 +187,7 @@ function OppdragListe({ oppdrag }: { oppdrag: { type: string; navn: string; sake
       {oppdrag.map(o => (
         <li key={o.type}>
           <div className="flex items-baseline justify-between gap-3 text-sm">
-            <span className="text-white/85">{o.navn} <span className="text-xs text-white/45">· {o.saker} saker</span></span>
+            <span className="text-white/85">{o.navn} <span className="text-xs text-white/60">· {o.saker} saker</span></span>
             <span className="font-semibold tabular-nums">{hel(o.sum)}</span>
           </div>
           <div className="mt-2 h-1.5 rounded-full bg-white/10">
@@ -207,7 +207,7 @@ const lopetidFarge = (dager: number, apen: boolean) =>
 function SisteSaker({ saker, na }: { saker: Sak[]; na: number }) {
   if (!saker.length) {
     return (
-      <div className="flex flex-col items-center py-10 text-center text-sm text-white/60">
+      <div className="flex flex-col items-center py-10 text-center text-sm text-white/75">
         Ingen saker ennå.
         <Link href="/?ny=kunde" className="mt-3 rounded-xl bg-white/10 px-4 py-2 font-medium text-white ring-1 ring-white/15 hover:bg-white/20">Legg til første kunde</Link>
       </div>
@@ -217,7 +217,7 @@ function SisteSaker({ saker, na }: { saker: Sak[]; na: number }) {
     <div className="-mx-2 overflow-x-auto">
       <table className="w-full min-w-[640px] text-sm">
         <thead>
-          <tr className="text-left text-[11px] uppercase tracking-wide text-white/45">
+          <tr className="text-left text-[11px] uppercase tracking-wide text-white/60">
             <th className="px-2 pb-3 font-medium">Kunde</th>
             <th className="px-2 pb-3 font-medium">Saksbehandler</th>
             <th className="px-2 pb-3 font-medium">Status</th>
@@ -237,7 +237,7 @@ function SisteSaker({ saker, na }: { saker: Sak[]; na: number }) {
                     </span>
                     <span className="min-w-0">
                       <span className="block truncate font-medium hover:underline">{s.navn || 'Uten navn'}</span>
-                      <span className="block truncate text-xs text-white/50">#{s.saksnummer}{s.poststed ? ` · ${s.poststed}` : ''}</span>
+                      <span className="block truncate text-xs text-white/65">#{s.saksnummer}{s.poststed ? ` · ${s.poststed}` : ''}</span>
                     </span>
                   </Link>
                 </td>
@@ -252,7 +252,7 @@ function SisteSaker({ saker, na }: { saker: Sak[]; na: number }) {
                     <div className="h-1.5 w-20 rounded-full bg-white/10">
                       <div className={`h-1.5 rounded-full ${lopetidFarge(dager, erApen(s))}`} style={{ width: `${Math.min(100, Math.max(4, (dager / 30) * 100))}%` }} />
                     </div>
-                    <span className="text-xs tabular-nums text-white/70">{dager} d</span>
+                    <span className="text-xs tabular-nums text-white/80">{dager} d</span>
                   </div>
                 </td>
                 <td className="px-2 py-3 text-right font-medium tabular-nums">{hel(beregnPris(s.pris).sumEksMva)}</td>
@@ -274,7 +274,7 @@ function Team({ saker, na }: { saker: Sak[]; na: number }) {
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent" />
         <div className="absolute bottom-3 left-5">
           <div className="text-sm font-semibold">Ocab-teamet</div>
-          <div className="text-xs text-white/60">Saving value, helping people</div>
+          <div className="text-xs text-white/75">Saving value, helping people</div>
         </div>
       </div>
       <ul className="divide-y divide-white/[0.07] px-5 py-2">
@@ -288,7 +288,7 @@ function Team({ saker, na }: { saker: Sak[]; na: number }) {
               </span>
               <span className="flex-1 text-sm">{navn}</span>
               {varsler > 0 && <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[11px] font-medium text-amber-200 ring-1 ring-amber-300/30">{varsler} varsler</span>}
-              <span className="text-xs tabular-nums text-white/60">{egne.length} åpne</span>
+              <span className="text-xs tabular-nums text-white/75">{egne.length} åpne</span>
             </li>
           );
         })}

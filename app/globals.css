@@ -42,7 +42,7 @@ body {
 
 /* ===== Glass-stil (oversiktssiden) ===== */
 @utility glass {
-  background: linear-gradient(135deg, rgb(255 255 255 / 0.10), rgb(255 255 255 / 0.03));
+  background: linear-gradient(135deg, rgb(255 255 255 / 0.10), rgb(255 255 255 / 0.04)), rgb(15 23 42 / 0.45);
   -webkit-backdrop-filter: blur(22px) saturate(150%);
   backdrop-filter: blur(22px) saturate(150%);
   border: 1px solid rgb(255 255 255 / 0.12);

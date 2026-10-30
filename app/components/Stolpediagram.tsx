@@ -33,7 +33,7 @@ export default function Stolpediagram({ punkter, serier, hoyde = 220, formater =
       {serier.length > 1 && (
         <div className="mb-4 flex flex-wrap gap-x-4 gap-y-1.5">
           {serier.map(s => (
-            <span key={s.nokkel} className="flex items-center gap-1.5 text-xs text-white/70">
+            <span key={s.nokkel} className="flex items-center gap-1.5 text-xs text-white/80">
               <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: s.farge }} />{s.navn}
             </span>
           ))}
@@ -43,7 +43,7 @@ export default function Stolpediagram({ punkter, serier, hoyde = 220, formater =
       {!visTabell ? (
         <div className="flex gap-3">
           {/* Y-akse */}
-          <div className="relative w-9 shrink-0 text-right text-[10px] tabular-nums text-white/40" style={{ height: hoyde }}>
+          <div className="relative w-9 shrink-0 text-right text-[10px] tabular-nums text-white/55" style={{ height: hoyde }}>
             {linjer.map(v => (
               <span key={v} className="absolute right-0 translate-y-1/2" style={{ bottom: `${(v / maks) * 100}%` }}>{kortTall(v)}</span>
             ))}
@@ -80,7 +80,7 @@ export default function Stolpediagram({ punkter, serier, hoyde = 220, formater =
                           <div className="mb-1.5 font-semibold capitalize">{p.tittel}</div>
                           {serier.map(s => (
                             <div key={s.nokkel} className="flex items-center justify-between gap-3 py-0.5">
-                              <span className="flex items-center gap-1.5 text-white/60">
+                              <span className="flex items-center gap-1.5 text-white/75">
                                 <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: s.farge }} />{s.navn}
                               </span>
                               <span className="font-semibold tabular-nums">{formater(p.verdier[s.nokkel] || 0)}</span>
@@ -100,7 +100,7 @@ export default function Stolpediagram({ punkter, serier, hoyde = 220, formater =
             </div>
             <div className="mt-2 flex gap-1 sm:gap-2">
               {punkter.map((p, i) => (
-                <div key={p.tittel} className={`flex-1 text-center text-[11px] capitalize ${hover === i ? 'font-semibold text-white' : 'text-white/45'}`}>{p.etikett}</div>
+                <div key={p.tittel} className={`flex-1 text-center text-[11px] capitalize ${hover === i ? 'font-semibold text-white' : 'text-white/60'}`}>{p.etikett}</div>
               ))}
             </div>
           </div>
@@ -109,7 +109,7 @@ export default function Stolpediagram({ punkter, serier, hoyde = 220, formater =
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/10 text-left text-xs uppercase tracking-wide text-white/45">
+              <tr className="border-b border-white/10 text-left text-xs uppercase tracking-wide text-white/60">
                 <th className="py-2 pr-4 font-medium">Måned</th>
                 {serier.map(s => <th key={s.nokkel} className="py-2 pr-4 text-right font-medium">{s.navn}</th>)}
                 {serier.length > 1 && <th className="py-2 text-right font-medium">Totalt</th>}
